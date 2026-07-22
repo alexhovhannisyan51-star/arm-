@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Page</title>
+</head>
+<body>
+  <h1>Hello, this is working!</h1>
+  <p id="status">Testing Supabase connection...</p>
+  <div id="events"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://tcgayjiqkndonrkolcvr.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_AwUckebTS80a2gnX54ub7A_bCC9aznC";
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function test() {
+      const status = document.getElementById("status");
+      const eventsDiv = document.getElementById("events");
+
+      const { data, error } = await supabase.from("events").select("*").limit(5);
+
+      if (error) {
+        status.textContent = "Error: " + error.message;
+        return;
+      }
+
+      status.textContent = `Connected! Found ${data.length} events (showing first 5):`;
+      eventsDiv.innerHTML = data.map(e => `<p>${e.event_title}</p>`).join("");
+    }
+
+    test();
+  </script>
+</body>
+</html>
