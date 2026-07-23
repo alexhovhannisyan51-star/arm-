@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contact -- Locus</title>
+  <title>Catalog -- Locus</title>
   <link rel="icon" type="image/png" href="logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -29,7 +29,7 @@
       padding: 16px 24px;
     }
     .header-inner {
-      max-width: 900px;
+      max-width: 1000px;
       margin: 0 auto;
       display: flex;
       align-items: center;
@@ -40,89 +40,46 @@
       font-weight: 700;
       font-size: 19px;
     }
-    .intro {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 56px 24px 32px;
-    }
-    .intro h1 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      font-size: 30px;
-      margin: 0 0 12px;
-    }
-    .intro p {
-      color: #9FB3C2;
-      font-size: 16px;
-      line-height: 1.7;
-      max-width: 560px;
-      margin: 0;
-    }
-
-    /* FAQ */
-    .faq {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 8px 24px 48px;
-    }
-    .faq h2 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      font-size: 20px;
-      margin: 0 0 20px;
-    }
-    .faq-item {
-      border-top: 1px solid #1E3A52;
-      padding: 16px 0;
-    }
-    .faq-item:last-child { border-bottom: 1px solid #1E3A52; }
-    .faq-item summary {
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 15px;
-      color: #E8EEF2;
-      list-style: none;
-    }
-    .faq-item summary::-webkit-details-marker { display: none; }
-    .faq-item summary::before {
-      content: "+ ";
+    .back-link {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid #1E3A52;
       color: #6FD1C6;
+      text-decoration: none;
+      font-size: 13px;
     }
-    .faq-item[open] summary::before {
-      content: "− ";
-    }
-    .faq-item p {
-      color: #9FB3C2;
-      font-size: 14px;
-      line-height: 1.6;
-      margin: 10px 0 0;
-    }
-
-    /* Message form */
-    .message-form {
-      max-width: 900px;
+    .back-link:hover { background: #12293F; }
+    main {
+      max-width: 1000px;
       margin: 0 auto;
-      padding: 8px 24px 64px;
+      padding: 40px 24px 64px;
     }
-    .message-form h2 {
+    h1 {
       font-family: 'Space Grotesk', sans-serif;
       font-weight: 700;
-      font-size: 20px;
-      margin: 0 0 20px;
+      font-size: 28px;
+      margin: 0 0 8px;
     }
-    .message-form form {
-      max-width: 480px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .message-form label {
-      font-size: 13px;
+    .subhead {
       color: #9FB3C2;
-      margin-bottom: -8px;
+      font-size: 15px;
+      margin: 0 0 24px;
+      max-width: 620px;
+      line-height: 1.6;
     }
-    .message-form input,
-    .message-form textarea {
+    .search-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    #diseaseInput {
+      flex: 1;
+      min-width: 220px;
       padding: 12px 14px;
       border-radius: 8px;
       border: 1px solid #1E3A52;
@@ -130,64 +87,88 @@
       color: #E8EEF2;
       font-family: 'IBM Plex Sans', sans-serif;
       font-size: 14px;
-      resize: vertical;
     }
-    .message-form textarea { min-height: 120px; }
-    .message-form button {
-      padding: 12px 24px;
+    #diseaseInput::placeholder { color: #63798A; }
+    #diseaseButton {
+      padding: 12px 22px;
       border-radius: 8px;
       border: none;
       background: #0C7C7C;
       color: white;
       font-weight: 600;
-      font-size: 15px;
+      font-size: 14px;
       cursor: pointer;
-      width: fit-content;
     }
-    .form-status {
+    .examples {
+      margin-bottom: 28px;
+    }
+    .examples-label {
+      font-size: 12px;
+      color: #63798A;
+      margin-bottom: 10px;
+    }
+    .example-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .example-chip {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid #1E3A52;
+      background: transparent;
+      color: #9FB3C2;
       font-size: 13px;
-      margin-top: 4px;
+      cursor: pointer;
+      font-family: 'IBM Plex Sans', sans-serif;
     }
-    .form-status.success { color: #6FD18E; }
-    .form-status.error { color: #F28B82; }
-
-    /* Contact info footer block */
-    .contact-footer {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 56px 24px 80px;
-      border-top: 1px solid #1E3A52;
+    .example-chip:hover {
+      border-color: #0C7C7C;
+      color: #6FD1C6;
     }
-    .contact-footer h2 {
+    .status-message {
+      color: #63798A;
+      font-size: 14px;
+      padding: 40px 0;
+      text-align: center;
+    }
+    .result-summary {
+      font-size: 13px;
+      color: #9FB3C2;
+      margin-bottom: 14px;
+    }
+    .gene-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .gene-card {
+      display: block;
+      background: #0F2438;
+      border: 1px solid #1E3A52;
+      border-radius: 8px;
+      padding: 14px 16px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .gene-card:hover { background: #12293F; border-color: #0C7C7C; }
+    .gene-name {
       font-family: 'Space Grotesk', sans-serif;
       font-weight: 700;
-      font-size: 22px;
-      margin: 0 0 24px;
-      text-align: center;
+      font-size: 17px;
+      color: #6FD1C6;
     }
-    .contact-grid {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 28px;
-    }
-    .contact-item {
-      text-align: center;
-      font-size: 14px;
-    }
-    .contact-item .label {
-      display: block;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #63798A;
-      margin-bottom: 6px;
-    }
-    .contact-item a {
+    .gene-count {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
       color: #9FB3C2;
-      text-decoration: none;
+      margin: 4px 0 8px;
     }
-    .contact-item a:hover { color: #6FD1C6; }
+    .gene-conditions {
+      font-size: 12px;
+      color: #63798A;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -196,81 +177,174 @@
     <div class="header-inner">
       <img src="logo.png" alt="Locus logo" style="height: 32px; width: auto;" />
       <span class="logo">Locus</span>
-      <nav style="margin-left: auto; display: flex; gap: 20px;">
-        <a href="index.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Home</a>
-        <a href="database.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Database</a>
-        <a href="contact.html" style="color: #E8EEF2; text-decoration: none; font-size: 14px;">Contact</a>
-      </nav>
+      <a href="database.html" class="back-link">← Back to Database</a>
     </div>
   </header>
 
-  <section class="intro">
-    <h1>Get in touch</h1>
-    <p>
-      Feel free to reach out with any questions, feedback, or if something in the data doesn't look right.
+  <main>
+    <h1>Disease → Gene Catalog</h1>
+    <p class="subhead">
+      Type a condition name to see which genes are linked to it. You can search broad terms
+      like "cancer" or specific ones like "cystic fibrosis" -- partial words work too.
     </p>
-  </section>
 
-  <section class="faq">
-    <h2>Frequently asked questions</h2>
+    <div class="search-row">
+      <input id="diseaseInput" type="text" placeholder="e.g. cardiovascular, epilepsy, deafness" />
+      <button id="diseaseButton">Search</button>
+    </div>
 
-    <details class="faq-item">
-      <summary>Where does the data come from?</summary>
-      <p>Every variant is pulled from myvariant.info, which aggregates ClinVar, gnomAD, dbNSFP, and dbSNP into one source.</p>
-    </details>
-
-    <details class="faq-item">
-      <summary>How often is the database updated?</summary>
-      <p>An automated job refreshes the dataset weekly, pulling the latest ClinVar classifications directly into Locus.</p>
-    </details>
-
-    <details class="faq-item">
-      <summary>Is Locus meant for clinical decision-making?</summary>
-      <p>Locus is a research and educational tool. Always verify findings against primary sources and consult a qualified professional before making clinical decisions.</p>
-    </details>
-
-    <details class="faq-item">
-      <summary>Can I report incorrect or outdated data?</summary>
-      <p>Yes -- use the message form below or email us directly. We look into every report.</p>
-    </details>
-  </section>
-
-  <section class="message-form">
-    <h2>Send a message</h2>
-    <form id="contactForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
-      <label for="fromEmail">Your email</label>
-      <input type="email" id="fromEmail" name="email" placeholder="you@example.com" required />
-
-      <label for="messageBody">Message</label>
-      <textarea id="messageBody" name="message" placeholder="What's on your mind?" required></textarea>
-
-      <button type="submit">Send message</button>
-      <p id="formStatus" class="form-status"></p>
-    </form>
-  </section>
-
-  <section class="contact-footer">
-    <h2>Other ways to reach us</h2>
-    <div class="contact-grid">
-      <div class="contact-item">
-        <span class="label">Email</span>
-        <a href="mailto:alexhovhannisyan51@gmail.com">alexhovhannisyan51@gmail.com</a>
-      </div>
-      <div class="contact-item">
-        <span class="label">Phone</span>
-        <a href="tel:+16179163046">+1 (617) 916-3046</a>
-      </div>
-      <div class="contact-item">
-        <span class="label">LinkedIn</span>
-        <a href="https://www.linkedin.com/in/alex-hovhannisyan-14b5433b2" target="_blank" rel="noopener">alex-hovhannisyan</a>
+    <div class="examples">
+      <p class="examples-label">Conditions found in our database -- tap one to search:</p>
+      <div class="example-chips" id="exampleChips">
+        <span style="color:#63798A; font-size:13px;">Loading examples…</span>
       </div>
     </div>
-  </section>
+
+    <div id="results"></div>
+  </main>
 
   <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      document.body.classList.add("loaded");
+    const SUPABASE_URL = "https://bgbcudbidruynnzlxurh.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnYmN1ZGJpZHJ1eW5uemx4dXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2Nzk5NDYsImV4cCI6MjEwMDI1NTk0Nn0.pK7K0XZIZoXGv_s7_yq5tToZl0tY61rpkidVyRHP1Tw";
+
+    async function loadExamples() {
+      const chipsEl = document.getElementById("exampleChips");
+      try {
+        const params = new URLSearchParams();
+        params.set("select", "clinvar_conditions");
+        params.set("clinvar_conditions", "not.is.null");
+        params.set("limit", "1500");
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/variants?${params.toString()}&apikey=${SUPABASE_ANON_KEY}`);
+        if (!res.ok) throw new Error("could not load examples");
+        const rows = await res.json();
+
+        const counts = {};
+        const skip = ["not provided", "not specified", "see cases", "none provided"];
+
+        rows.forEach((row) => {
+          if (!row.clinvar_conditions) return;
+          row.clinvar_conditions.split(";").forEach((c) => {
+            const name = c.trim();
+            if (!name) return;
+            if (skip.includes(name.toLowerCase())) return;
+            if (name.length > 46) return;
+            counts[name] = (counts[name] || 0) + 1;
+          });
+        });
+
+        const top = Object.keys(counts)
+          .sort((a, b) => counts[b] - counts[a])
+          .slice(0, 20);
+
+        if (top.length === 0) {
+          chipsEl.innerHTML = '<span style="color:#63798A; font-size:13px;">No examples available.</span>';
+          return;
+        }
+
+        chipsEl.innerHTML = top
+          .map((name) => `<button class="example-chip" data-term="${name.replace(/"/g, "&quot;")}">${name}</button>`)
+          .join("");
+
+        chipsEl.querySelectorAll(".example-chip").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            document.getElementById("diseaseInput").value = btn.dataset.term;
+            searchDisease(btn.dataset.term);
+          });
+        });
+      } catch (e) {
+        chipsEl.innerHTML = '<span style="color:#63798A; font-size:13px;">Examples unavailable -- type a condition above.</span>';
+      }
+    }
+
+    async function searchDisease(term) {
+      const resultsEl = document.getElementById("results");
+      const t = term.trim().replace(/[,()%]/g, "");
+
+      if (!t) {
+        resultsEl.innerHTML = '<p class="status-message">Type a condition name above, or tap one of the examples.</p>';
+        return;
+      }
+
+      resultsEl.innerHTML = '<p class="status-message">Searching…</p>';
+
+      try {
+        const params = new URLSearchParams();
+        params.set("select", "gene,clinvar_conditions");
+        params.set("clinvar_conditions", `ilike.*${t}*`);
+        params.set("limit", "1000");
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/variants?${params.toString()}&apikey=${SUPABASE_ANON_KEY}`);
+        if (!res.ok) {
+          const body = await res.text();
+          throw new Error(`Supabase error ${res.status}: ${body.slice(0, 140)}`);
+        }
+        const data = await res.json();
+        renderGenes(data, t);
+      } catch (err) {
+        resultsEl.innerHTML = `<p class="status-message" style="color:#F28B82;">${err.message}</p>`;
+      }
+    }
+
+    function renderGenes(rows, term) {
+      const resultsEl = document.getElementById("results");
+      const geneMap = {};
+
+      rows.forEach((row) => {
+        if (!row.gene) return;
+        if (!geneMap[row.gene]) geneMap[row.gene] = { count: 0, conditions: new Set() };
+        geneMap[row.gene].count += 1;
+        if (row.clinvar_conditions) {
+          row.clinvar_conditions.split(";").forEach((c) => {
+            c = c.trim();
+            if (c.toLowerCase().includes(term.toLowerCase())) {
+              geneMap[row.gene].conditions.add(c);
+            }
+          });
+        }
+      });
+
+      const genes = Object.keys(geneMap).sort((a, b) => geneMap[b].count - geneMap[a].count);
+
+      if (genes.length === 0) {
+        resultsEl.innerHTML = '<p class="status-message">No genes found linked to that condition. Try a broader term, or tap one of the examples above.</p>';
+        return;
+      }
+
+      const summary = `<p class="result-summary">${genes.length} gene${genes.length !== 1 ? "s" : ""} linked to "${term}" -- tap a gene to see its variants.</p>`;
+
+      resultsEl.innerHTML = summary + `<div class="gene-grid">${genes
+        .map((gene) => {
+          const info = geneMap[gene];
+          const condList = Array.from(info.conditions).slice(0, 3).join(", ");
+          const more = info.conditions.size > 3 ? ` +${info.conditions.size - 3} more` : "";
+          return `
+            <a class="gene-card" href="database.html?gene=${encodeURIComponent(gene)}">
+              <div class="gene-name">${gene}</div>
+              <div class="gene-count">${info.count} matching variant${info.count !== 1 ? "s" : ""}</div>
+              <div class="gene-conditions">${condList}${more}</div>
+            </a>
+          `;
+        })
+        .join("")}</div>`;
+    }
+
+    document.getElementById("diseaseButton").addEventListener("click", () => {
+      searchDisease(document.getElementById("diseaseInput").value);
     });
+    document.getElementById("diseaseInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") searchDisease(e.target.value);
+    });
+
+    loadExamples();
+
+    if (document.readyState === "loading") {
+      window.addEventListener("DOMContentLoaded", () => {
+        document.body.classList.add("loaded");
+      });
+    } else {
+      document.body.classList.add("loaded");
+    }
 
     document.addEventListener("click", (e) => {
       const link = e.target.closest("a");
@@ -283,35 +357,6 @@
       setTimeout(() => {
         window.location.href = href;
       }, 200);
-    });
-
-    const contactForm = document.getElementById("contactForm");
-    const formStatus = document.getElementById("formStatus");
-
-    contactForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      formStatus.textContent = "Sending…";
-      formStatus.className = "form-status";
-
-      try {
-        const response = await fetch(contactForm.action, {
-          method: "POST",
-          body: new FormData(contactForm),
-          headers: { Accept: "application/json" },
-        });
-
-        if (response.ok) {
-          formStatus.textContent = "Message sent -- thank you!";
-          formStatus.className = "form-status success";
-          contactForm.reset();
-        } else {
-          formStatus.textContent = "Something went wrong. Please try again or email directly.";
-          formStatus.className = "form-status error";
-        }
-      } catch (err) {
-        formStatus.textContent = "Network error. Please try again or email directly.";
-        formStatus.className = "form-status error";
-      }
     });
   </script>
 
