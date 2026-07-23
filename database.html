@@ -35,22 +35,75 @@
       font-weight: 700;
       font-size: 19px;
     }
+    .ai-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 16px;
+      cursor: help;
+    }
+    .ai-badge .square {
+      width: 22px;
+      height: 22px;
+      background: #0C7C7C;
+      color: white;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 11px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ai-badge span.label {
+      font-size: 12px;
+      color: #9FB3C2;
+    }
     main {
       max-width: 1000px;
       margin: 0 auto;
       padding: 40px 24px 64px;
     }
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
     h1 {
       font-family: 'Space Grotesk', sans-serif;
       font-weight: 700;
       font-size: 28px;
-      margin: 0 0 8px;
+      margin: 0;
+    }
+    #variantCount {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: #6FD1C6;
+      background: rgba(12,124,124,0.15);
+      padding: 4px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
     }
     .subhead {
       color: #9FB3C2;
       font-size: 15px;
-      margin: 0 0 24px;
+      margin: 0 0 16px;
     }
+    .catalog-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 20px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid #1E3A52;
+      color: #6FD1C6;
+      text-decoration: none;
+      font-size: 13px;
+    }
+    .catalog-link:hover { background: #12293F; }
     .search-row {
       display: flex;
       gap: 10px;
@@ -197,7 +250,11 @@
     <div class="header-inner">
       <img src="logo.png" alt="Locus logo" style="height: 32px; width: auto;" />
       <span class="logo">Locus</span>
-      <nav style="margin-left: auto; display: flex; gap: 20px;">
+      <div class="ai-badge" title="CADD pathogenicity scores in this data are computed using a machine-learning model">
+        <span class="square">AI</span>
+        <span class="label">Powered by AI</span>
+      </div>
+      <nav style="margin-left: auto; display: flex; align-items: center; gap: 20px;">
         <a href="index.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Home</a>
         <a href="database.html" style="color: #E8EEF2; text-decoration: none; font-size: 14px;">Database</a>
         <a href="contact.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Contact</a>
@@ -206,8 +263,13 @@
   </header>
 
   <main>
-    <h1>Variant Database</h1>
+    <div class="title-row">
+      <h1>Variant Database</h1>
+      <span id="variantCount">Loading count…</span>
+    </div>
     <p class="subhead">Search by gene, rsID, or HGVS notation.</p>
+
+    <a href="catalog.html" class="catalog-link">🔎 Browse by disease/condition →</a>
 
     <div class="search-row">
       <input id="searchInput" type="text" placeholder="e.g. BRCA1, rs334, c.5266dupC" />
@@ -254,6 +316,23 @@
     let currentFilter = "All";
     let currentTerm = "";
     let currentOffset = 0;
+
+    async function loadVariantCount() {
+      const el = document.getElementById("variantCount");
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/variant_count?apikey=${SUPABASE_ANON_KEY}`);
+        if (!res.ok) throw new Error("count unavailable");
+        const data = await res.json();
+        const count = typeof data === "number" ? data : (Array.isArray(data) ? data[0] : data);
+        if (typeof count === "number") {
+          el.textContent = count.toLocaleString() + " variants indexed";
+        } else {
+          el.textContent = "";
+        }
+      } catch (e) {
+        el.textContent = "";
+      }
+    }
 
     function buildParams(term, filter, offset) {
       const params = new URLSearchParams();
@@ -398,7 +477,14 @@
       searchVariants(currentTerm, currentFilter, { append: true });
     });
 
-    searchVariants("", "All");
+    loadVariantCount();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const geneParam = urlParams.get("gene");
+    if (geneParam) {
+      document.getElementById("searchInput").value = geneParam;
+    }
+    searchVariants(geneParam || "", "All");
   </script>
 
 </body>
