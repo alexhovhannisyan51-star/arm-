@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Database -- Locus</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #0B1D30;
+      color: #E8EEF2;
+      font-family: 'IBM Plex Sans', sans-serif;
+    }
+    header {
+      border-bottom: 1px solid #1E3A52;
+      padding: 16px 24px;
+    }
+    .header-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 19px;
+    }
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 24px 64px;
+    }
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      margin: 0 0 8px;
+    }
+    .subhead {
+      color: #9FB3C2;
+      font-size: 15px;
+      margin: 0 0 24px;
+    }
+    .search-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    #searchInput {
+      flex: 1;
+      min-width: 220px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid #1E3A52;
+      background: #0F2438;
+      color: #E8EEF2;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+    }
+    #searchInput::placeholder { color: #63798A; }
+    #searchButton {
+      padding: 12px 22px;
+      border-radius: 8px;
+      border: none;
+      background: #0C7C7C;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .filter-chip {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid #1E3A52;
+      background: transparent;
+      color: #9FB3C2;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .filter-chip.active {
+      border-color: #0C7C7C;
+      background: rgba(12,124,124,0.15);
+      color: #6FD1C6;
+      font-weight: 600;
+    }
+    .status-message {
+      color: #63798A;
+      font-size: 14px;
+      padding: 40px 0;
+      text-align: center;
+    }
+    .variant-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: #0F2438;
+      border: 1px solid #1E3A52;
+      border-left: 4px solid #64748B;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .variant-card:hover { background: #12293F; }
+    .variant-gene {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      margin-right: 8px;
+    }
+    .variant-badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .variant-detail {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: #9FB3C2;
+      margin-top: 4px;
+    }
+    .variant-freq {
+      text-align: right;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      color: #9FB3C2;
+      white-space: nowrap;
+    }
+    .freq-label { font-size: 11px; color: #63798A; }
+
+    #overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 50;
+    }
+    #panel {
+      position: fixed;
+      top: 0; right: 0;
+      width: 100%;
+      max-width: 420px;
+      height: 100%;
+      background: #0F2438;
+      border-left: 1px solid #1E3A52;
+      padding: 24px;
+      overflow-y: auto;
+      z-index: 51;
+    }
+    #panel h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      margin: 0 0 4px;
+    }
+    #panel .close-btn {
+      position: absolute;
+      top: 20px; right: 20px;
+      background: none;
+      border: none;
+      color: #9FB3C2;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    #panel .section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #63798A;
+      margin: 20px 0 6px;
+    }
+    #panel p { font-size: 14px; margin: 2px 0; }
+    #panel a { color: #6FD1C6; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <img src="logo.png" alt="Locus logo" style="height: 32px; width: auto;" />
+      <span class="logo">Locus</span>
+      <nav style="margin-left: auto; display: flex; gap: 20px;">
+        <a href="index.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Home</a>
+        <a href="database.html" style="color: #E8EEF2; text-decoration: none; font-size: 14px;">Database</a>
+        <a href="contact.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>Variant Database</h1>
+    <p class="subhead">Search by gene, rsID, or HGVS notation.</p>
+
+    <div class="search-row">
+      <input id="searchInput" type="text" placeholder="e.g. BRCA1, rs334, c.5266dupC" />
+      <button id="searchButton">Search</button>
+    </div>
+
+    <div class="filters" id="filters">
+      <button class="filter-chip active" data-filter="All">All</button>
+      <button class="filter-chip" data-filter="Pathogenic">Pathogenic</button>
+      <button class="filter-chip" data-filter="Likely pathogenic">Likely pathogenic</button>
+      <button class="filter-chip" data-filter="Uncertain significance">VUS</button>
+      <button class="filter-chip" data-filter="Likely benign">Likely benign</button>
+      <button class="filter-chip" data-filter="Benign">Benign</button>
+    </div>
+
+    <div id="results"></div>
+  </main>
+
+  <div id="overlay"></div>
+  <div id="panel" style="display:none;"></div>
+
+  <script>
+    const SUPABASE_URL = "https://bgbcudbidruynnzlxurh.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnYmN1ZGJpZHJ1eW5uemx4dXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2Nzk5NDYsImV4cCI6MjEwMDI1NTk0Nn0.pK7K0XZIZoXGv_s7_yq5tToZl0tY61rpkidVyRHP1Tw";
+
+    const SIG_STYLES = {
+      "Pathogenic": { color: "#F28B82", bg: "rgba(242,139,130,0.15)", label: "Pathogenic" },
+      "Likely pathogenic": { color: "#F5B971", bg: "rgba(245,185,113,0.15)", label: "Likely pathogenic" },
+      "Uncertain significance": { color: "#F0D264", bg: "rgba(240,210,100,0.15)", label: "VUS" },
+      "Likely benign": { color: "#7FD6C0", bg: "rgba(127,214,192,0.15)", label: "Likely benign" },
+      "Benign": { color: "#6FD18E", bg: "rgba(111,209,142,0.15)", label: "Benign" },
+    };
+    const UNKNOWN_SIG = { color: "#94A3B8", bg: "rgba(148,163,184,0.15)", label: "Not classified" };
+
+    function sigStyle(sig) {
+      return SIG_STYLES[sig] || UNKNOWN_SIG;
+    }
+
+    let currentFilter = "All";
+
+    async function searchVariants(term, filter) {
+      const resultsEl = document.getElementById("results");
+      resultsEl.innerHTML = '<p class="status-message">Loading…</p>';
+
+      try {
+        const params = new URLSearchParams();
+        params.set("select", "*");
+        params.set("limit", "60");
+        params.set("order", "gene.asc");
+
+        const t = term.trim().replace(/[,()%]/g, "");
+        if (t) {
+          params.set("or", `(gene.ilike.*${t}*,rsid.ilike.*${t}*,hgvs_c.ilike.*${t}*,hgvs_p.ilike.*${t}*,variant_id.ilike.*${t}*)`);
+        }
+        if (filter && filter !== "All") {
+          params.set("clinvar_significance", `eq.${filter}`);
+        }
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/variants?${params.toString()}`, {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        });
+
+        if (!res.ok) {
+          const body = await res.text();
+          throw new Error(`Supabase error ${res.status}: ${body.slice(0, 140)}`);
+        }
+
+        const data = await res.json();
+        renderResults(data);
+      } catch (err) {
+        resultsEl.innerHTML = `<p class="status-message" style="color:#F28B82;">${err.message}</p>`;
+      }
+    }
+
+    function renderResults(data) {
+      const resultsEl = document.getElementById("results");
+      if (!data.length) {
+        resultsEl.innerHTML = '<p class="status-message">No variants matched. Try a gene symbol, rsID, or HGVS notation.</p>';
+        return;
+      }
+      resultsEl.innerHTML = "";
+      data.forEach((v) => {
+        const s = sigStyle(v.clinvar_significance);
+        const card = document.createElement("div");
+        card.className = "variant-card";
+        card.style.borderLeftColor = s.color;
+        card.innerHTML = `
+          <div style="min-width:0;">
+            <span class="variant-gene">${v.gene || "--"}</span>
+            <span class="variant-badge" style="background:${s.bg}; color:${s.color};">${s.label}</span>
+            <div class="variant-detail">${v.hgvs_c || v.variant_id || ""} ${v.hgvs_p ? "· " + v.hgvs_p : ""} ${v.rsid ? "· " + v.rsid : ""}</div>
+          </div>
+          <div class="variant-freq">
+            <div class="freq-label">gnomAD AF</div>
+            ${v.gnomad_af_exome ? Number(v.gnomad_af_exome).toExponential(2) : "--"}
+          </div>
+        `;
+        card.addEventListener("click", () => openDetail(v));
+        resultsEl.appendChild(card);
+      });
+    }
+
+    function openDetail(v) {
+      const s = sigStyle(v.clinvar_significance);
+      const panel = document.getElementById("panel");
+      const overlay = document.getElementById("overlay");
+      panel.innerHTML = `
+        <button class="close-btn" onclick="closeDetail()">✕</button>
+        <h2>${v.gene || "Unknown gene"}</h2>
+        <p style="color:#63798A; font-family:'IBM Plex Mono', monospace; font-size:12px; word-break:break-all;">${v.variant_id || ""}</p>
+        <span class="variant-badge" style="background:${s.bg}; color:${s.color}; display:inline-block; margin-top:8px;">${s.label}</span>
+        <p style="color:#9FB3C2; font-size:13px; margin-top:6px;">${v.clinvar_review_status || "No review status"}</p>
+
+        <div class="section-label">Nomenclature</div>
+        <p style="font-family:'IBM Plex Mono', monospace;">${v.hgvs_c || "--"}</p>
+        <p style="font-family:'IBM Plex Mono', monospace;">${v.hgvs_p || "--"}</p>
+        <p style="font-family:'IBM Plex Mono', monospace;">${v.rsid || "--"}</p>
+        <p style="font-family:'IBM Plex Mono', monospace;">${v.chrom ? "chr" + v.chrom + ":" + v.pos + " " + v.ref + ">" + v.alt : "--"}</p>
+
+        <div class="section-label">Population frequency</div>
+        <p>gnomAD exome: <span style="font-family:'IBM Plex Mono', monospace;">${v.gnomad_af_exome ? Number(v.gnomad_af_exome).toExponential(3) : "--"}</span></p>
+        <p>gnomAD genome: <span style="font-family:'IBM Plex Mono', monospace;">${v.gnomad_af_genome ? Number(v.gnomad_af_genome).toExponential(3) : "--"}</span></p>
+
+        ${v.cadd_phred != null ? `<div class="section-label">CADD score</div><p style="font-family:'IBM Plex Mono', monospace;">${v.cadd_phred}</p>` : ""}
+
+        ${v.clinvar_conditions ? `<div class="section-label">Associated conditions</div><p>${v.clinvar_conditions}</p>` : ""}
+
+        <div class="section-label">Links</div>
+        ${v.rsid ? `<p><a href="https://www.ncbi.nlm.nih.gov/clinvar/?term=${v.rsid}" target="_blank" rel="noopener">View on ClinVar →</a></p>` : ""}
+        ${v.gene ? `<p><a href="https://gnomad.broadinstitute.org/gene/${v.gene}" target="_blank" rel="noopener">View gene on gnomAD →</a></p>` : ""}
+      `;
+      panel.style.display = "block";
+      overlay.style.display = "block";
+    }
+
+    function closeDetail() {
+      document.getElementById("panel").style.display = "none";
+      document.getElementById("overlay").style.display = "none";
+    }
+    document.getElementById("overlay").addEventListener("click", closeDetail);
+
+    document.getElementById("searchButton").addEventListener("click", () => {
+      searchVariants(document.getElementById("searchInput").value, currentFilter);
+    });
+    document.getElementById("searchInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") searchVariants(e.target.value, currentFilter);
+    });
+    document.querySelectorAll(".filter-chip").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".filter-chip").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentFilter = btn.dataset.filter;
+        searchVariants(document.getElementById("searchInput").value, currentFilter);
+      });
+    });
+
+    searchVariants("", "All");
+  </script>
+
+</body>
+</html>

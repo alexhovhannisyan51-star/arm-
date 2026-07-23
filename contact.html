@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Locus</title>
+  <title>Contact -- Locus</title>
   <link rel="icon" type="image/png" href="logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -35,48 +35,33 @@
       font-weight: 700;
       font-size: 19px;
     }
-    .hero {
+    .contact-section {
       max-width: 900px;
       margin: 0 auto;
-      padding: 48px 24px 24px;
+      padding: 64px 24px;
     }
-    .eyebrow {
-      font-family: 'IBM Plex Mono', monospace;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: #0C7C7C;
-      font-size: 12px;
-      margin-bottom: 12px;
-    }
-    h1 {
+    .contact-section h1 {
       font-family: 'Space Grotesk', sans-serif;
       font-weight: 700;
-      font-size: 34px;
-      line-height: 1.2;
+      font-size: 30px;
       margin: 0 0 12px;
     }
-    .subhead {
+    .contact-section p {
       color: #9FB3C2;
       font-size: 16px;
-      margin: 0;
-    }
-    .mission {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 24px 24px 64px;
-    }
-    .mission h2 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      font-size: 22px;
-      margin: 0 0 12px;
-    }
-    .mission p {
-      color: #9FB3C2;
-      font-size: 15px;
       line-height: 1.7;
-      max-width: 640px;
-      margin: 0;
+      max-width: 560px;
+    }
+    .contact-button {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 12px 24px;
+      background: #0C7C7C;
+      color: #FFFFFF;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 15px;
     }
   </style>
 </head>
@@ -87,27 +72,31 @@
       <img src="logo.png" alt="Locus logo" style="height: 32px; width: auto;" />
       <span class="logo">Locus</span>
       <nav style="margin-left: auto; display: flex; gap: 20px;">
-        <a href="index.html" style="color: #E8EEF2; text-decoration: none; font-size: 14px;">Home</a>
+        <a href="index.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Home</a>
         <a href="database.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Database</a>
-        <a href="contact.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Contact</a>
+        <a href="contact.html" style="color: #E8EEF2; text-decoration: none; font-size: 14px;">Contact</a>
       </nav>
     </div>
   </header>
 
-  <section class="hero">
-    <p class="eyebrow">ClinVar · gnomAD · dbNSFP</p>
-    <h1>Search any gene, variant, or rsID.</h1>
-    <p class="subhead">Get classification, review confidence, and population frequency in one place.</p>
-  </section>
-
-  <section class="mission">
-    <h2>Our mission</h2>
+  <section class="contact-section">
+    <h1>Get in touch</h1>
     <p>
-      Every clinician and researcher deserves fast, transparent access to variant evidence -- not buried across
-      disconnected databases. Locus brings together ClinVar's clinical classifications, gnomAD's population
-      frequency data, and computational evidence scores into one clear, searchable view, so decisions are
-      grounded in the fullest picture available.
+      Feel free to reach out with any questions, feedback, or if something in the data doesn't look right.
     </p>
+    <p style="margin-top: 24px; font-size: 15px;">
+      <strong style="color: #E8EEF2;">Email:</strong>
+      <a href="mailto:alexhovhannisyan51@gmail.com" style="color: #9FB3C2;">alexhovhannisyan51@gmail.com</a>
+    </p>
+    <p style="font-size: 15px;">
+      <strong style="color: #E8EEF2;">Phone:</strong>
+      <a href="tel:+16179163046" style="color: #9FB3C2;">+1 (617) 916-3046</a>
+    </p>
+    <p style="font-size: 15px;">
+      <strong style="color: #E8EEF2;">LinkedIn:</strong>
+      <a href="https://www.linkedin.com/in/alex-hovhannisyan-14b5433b2" target="_blank" rel="noopener" style="color: #9FB3C2;">alex-hovhannisyan</a>
+    </p>
+    <a href="mailto:alexhovhannisyan51@gmail.com" class="contact-button">Email us</a>
   </section>
 
 </body>
