@@ -18,7 +18,12 @@
       background: #0B1D30;
       color: #E8EEF2;
       font-family: 'IBM Plex Sans', sans-serif;
+      opacity: 0;
+      transition: opacity 0.25s ease;
     }
+    body.loaded { opacity: 1; }
+    body.fading-out { opacity: 0; }
+
     header {
       border-bottom: 1px solid #1E3A52;
       padding: 16px 24px;
@@ -36,10 +41,10 @@
       font-size: 19px;
     }
     .ai-badge {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 6px;
-      margin-left: 16px;
+      margin-bottom: 14px;
       cursor: help;
     }
     .ai-badge .square {
@@ -250,10 +255,6 @@
     <div class="header-inner">
       <img src="logo.png" alt="Locus logo" style="height: 32px; width: auto;" />
       <span class="logo">Locus</span>
-      <div class="ai-badge" title="CADD pathogenicity scores in this data are computed using a machine-learning model">
-        <span class="square">AI</span>
-        <span class="label">Powered by AI</span>
-      </div>
       <nav style="margin-left: auto; display: flex; align-items: center; gap: 20px;">
         <a href="index.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Home</a>
         <a href="database.html" style="color: #E8EEF2; text-decoration: none; font-size: 14px;">Database</a>
@@ -263,6 +264,11 @@
   </header>
 
   <main>
+    <div class="ai-badge" title="CADD pathogenicity scores in this data are computed using a machine-learning model">
+      <span class="square">AI</span>
+      <span class="label">Powered by AI</span>
+    </div>
+
     <div class="title-row">
       <h1>Variant Database</h1>
       <span id="variantCount">Loading count…</span>
@@ -485,6 +491,23 @@
       document.getElementById("searchInput").value = geneParam;
     }
     searchVariants(geneParam || "", "All");
+
+    window.addEventListener("DOMContentLoaded", () => {
+      document.body.classList.add("loaded");
+    });
+
+    document.addEventListener("click", (e) => {
+      const link = e.target.closest("a");
+      if (!link) return;
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("tel:") || link.target === "_blank") return;
+
+      e.preventDefault();
+      document.body.classList.add("fading-out");
+      setTimeout(() => {
+        window.location.href = href;
+      }, 200);
+    });
   </script>
 
 </body>

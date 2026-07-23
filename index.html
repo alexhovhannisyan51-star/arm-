@@ -18,7 +18,12 @@
       background: #0B1D30;
       color: #E8EEF2;
       font-family: 'IBM Plex Sans', sans-serif;
+      opacity: 0;
+      transition: opacity 0.25s ease;
     }
+    body.loaded { opacity: 1; }
+    body.fading-out { opacity: 0; }
+
     header {
       border-bottom: 1px solid #1E3A52;
       padding: 16px 24px;
@@ -78,6 +83,140 @@
       max-width: 640px;
       margin: 0;
     }
+
+    /* Feature buttons section */
+    .features {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px 24px 72px;
+    }
+    .features-heading {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      margin: 0 0 24px;
+      text-align: center;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+    .feature-card {
+      background: #0F2438;
+      border: 1px solid #1E3A52;
+      border-radius: 12px;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .feature-card:not(.disabled):hover {
+      border-color: #0C7C7C;
+      transform: translateY(-2px);
+    }
+    .feature-card.disabled {
+      opacity: 0.55;
+      cursor: default;
+    }
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(12,124,124,0.15);
+      color: #6FD1C6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 14px;
+    }
+    .feature-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      margin: 0 0 8px;
+    }
+    .feature-desc {
+      color: #9FB3C2;
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 0 0 14px;
+    }
+    .feature-btn {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 16px;
+      border-radius: 999px;
+      background: #0C7C7C;
+      color: white;
+    }
+    .feature-btn.soon {
+      background: transparent;
+      border: 1px solid #1E3A52;
+      color: #63798A;
+    }
+
+    /* Embedded contact section */
+    .contact-preview {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 64px 24px 80px;
+      border-top: 1px solid #1E3A52;
+    }
+    .contact-preview h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 24px;
+      margin: 0 0 8px;
+      text-align: center;
+    }
+    .contact-preview .sub {
+      color: #9FB3C2;
+      font-size: 14px;
+      text-align: center;
+      margin: 0 0 28px;
+    }
+    .contact-grid {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 28px;
+      margin-bottom: 24px;
+    }
+    .contact-item {
+      text-align: center;
+      font-size: 14px;
+    }
+    .contact-item .label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #63798A;
+      margin-bottom: 6px;
+    }
+    .contact-item a {
+      color: #9FB3C2;
+      text-decoration: none;
+    }
+    .contact-item a:hover { color: #6FD1C6; }
+    .contact-cta {
+      display: block;
+      width: fit-content;
+      margin: 0 auto;
+      padding: 12px 28px;
+      background: #0C7C7C;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -109,6 +248,80 @@
       grounded in the fullest picture available.
     </p>
   </section>
+
+  <section class="features">
+    <h2 class="features-heading">What you can do on Locus</h2>
+    <div class="feature-grid">
+
+      <a href="database.html" class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3 class="feature-title">Database Search</h3>
+        <p class="feature-desc">
+          Search over 15,000 real ClinVar variants by gene, rsID, or HGVS notation. Every result returns instantly,
+          with classification, review confidence, and gnomAD population frequency shown side by side.
+        </p>
+        <span class="feature-btn">Try it now →</span>
+      </a>
+
+      <div class="feature-card disabled">
+        <div class="feature-icon">🧬</div>
+        <h3 class="feature-title">Coming Soon</h3>
+        <p class="feature-desc">
+          This space is reserved for the next Locus tool. Check back soon.
+        </p>
+        <span class="feature-btn soon">Coming soon</span>
+      </div>
+
+      <div class="feature-card disabled">
+        <div class="feature-icon">📊</div>
+        <h3 class="feature-title">Coming Soon</h3>
+        <p class="feature-desc">
+          This space is reserved for the next Locus tool. Check back soon.
+        </p>
+        <span class="feature-btn soon">Coming soon</span>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="contact-preview">
+    <h2>Get in touch</h2>
+    <p class="sub">Questions, feedback, or found something that doesn't look right? Reach out any time.</p>
+    <div class="contact-grid">
+      <div class="contact-item">
+        <span class="label">Email</span>
+        <a href="mailto:alexhovhannisyan51@gmail.com">alexhovhannisyan51@gmail.com</a>
+      </div>
+      <div class="contact-item">
+        <span class="label">Phone</span>
+        <a href="tel:+16179163046">+1 (617) 916-3046</a>
+      </div>
+      <div class="contact-item">
+        <span class="label">LinkedIn</span>
+        <a href="https://www.linkedin.com/in/alex-hovhannisyan-14b5433b2" target="_blank" rel="noopener">alex-hovhannisyan</a>
+      </div>
+    </div>
+    <a href="contact.html" class="contact-cta">Go to Contact page</a>
+  </section>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      document.body.classList.add("loaded");
+    });
+
+    document.addEventListener("click", (e) => {
+      const link = e.target.closest("a");
+      if (!link) return;
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("tel:") || link.target === "_blank") return;
+
+      e.preventDefault();
+      document.body.classList.add("fading-out");
+      setTimeout(() => {
+        window.location.href = href;
+      }, 200);
+    });
+  </script>
 
 </body>
 </html>
