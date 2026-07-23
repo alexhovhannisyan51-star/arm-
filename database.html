@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -225,6 +224,10 @@
     </div>
 
     <div id="results"></div>
+
+    <div id="loadMoreWrap" style="display:none; justify-content:center; margin-top: 16px;">
+      <button id="loadMoreBtn" style="padding: 10px 20px; border-radius: 8px; border: 1px solid #1E3A52; background: transparent; color: #9FB3C2; font-size: 14px; cursor: pointer;">Load more</button>
+    </div>
   </main>
 
   <div id="overlay"></div>
@@ -233,6 +236,7 @@
   <script>
     const SUPABASE_URL = "https://bgbcudbidruynnzlxurh.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnYmN1ZGJpZHJ1eW5uemx4dXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2Nzk5NDYsImV4cCI6MjEwMDI1NTk0Nn0.pK7K0XZIZoXGv_s7_yq5tToZl0tY61rpkidVyRHP1Tw";
+    const PAGE_SIZE = 60;
 
     const SIG_STYLES = {
       "Pathogenic": { color: "#F28B82", bg: "rgba(242,139,130,0.15)", label: "Pathogenic" },
@@ -248,27 +252,46 @@
     }
 
     let currentFilter = "All";
+    let currentTerm = "";
+    let currentOffset = 0;
 
-    async function searchVariants(term, filter) {
+    function buildParams(term, filter, offset) {
+      const params = new URLSearchParams();
+      params.set("select", "*");
+      params.set("limit", String(PAGE_SIZE));
+      params.set("offset", String(offset));
+      params.set("order", "gene.asc");
+
+      const t = term.trim().replace(/[,()%]/g, "");
+      if (t) {
+        params.set("or", `(gene.ilike.*${t}*,rsid.ilike.*${t}*,hgvs_c.ilike.*${t}*,hgvs_p.ilike.*${t}*,variant_id.ilike.*${t}*)`);
+      }
+      if (filter && filter !== "All") {
+        params.set("clinvar_significance", `eq.${filter}`);
+      }
+      return params;
+    }
+
+    async function searchVariants(term, filter, options) {
+      options = options || {};
+      const append = options.append || false;
       const resultsEl = document.getElementById("results");
-      resultsEl.innerHTML = '<p class="status-message">Loading…</p>';
+      const loadMoreWrap = document.getElementById("loadMoreWrap");
+      const loadMoreBtn = document.getElementById("loadMoreBtn");
+
+      currentTerm = term;
+      currentFilter = filter;
+      if (!append) {
+        currentOffset = 0;
+        resultsEl.innerHTML = '<p class="status-message">Loading…</p>';
+        loadMoreWrap.style.display = "none";
+      } else {
+        loadMoreBtn.textContent = "Loading…";
+      }
 
       try {
-        const params = new URLSearchParams();
-        params.set("select", "*");
-        params.set("limit", "60");
-        params.set("order", "gene.asc");
-
-        const t = term.trim().replace(/[,()%]/g, "");
-        if (t) {
-          params.set("or", `(gene.ilike.*${t}*,rsid.ilike.*${t}*,hgvs_c.ilike.*${t}*,hgvs_p.ilike.*${t}*,variant_id.ilike.*${t}*)`);
-        }
-        if (filter && filter !== "All") {
-          params.set("clinvar_significance", `eq.${filter}`);
-        }
-
+        const params = buildParams(term, filter, currentOffset);
         const res = await fetch(`${SUPABASE_URL}/rest/v1/variants?${params.toString()}&apikey=${SUPABASE_ANON_KEY}`);
-
 
         if (!res.ok) {
           const body = await res.text();
@@ -276,19 +299,28 @@
         }
 
         const data = await res.json();
-        renderResults(data);
+
+        if (!append && data.length === 0) {
+          resultsEl.innerHTML = '<p class="status-message">No variants matched. Try a gene symbol, rsID, or HGVS notation.</p>';
+        } else {
+          renderResults(data, append);
+        }
+
+        currentOffset += data.length;
+        loadMoreWrap.style.display = data.length === PAGE_SIZE ? "flex" : "none";
+        loadMoreBtn.textContent = "Load more";
       } catch (err) {
-        resultsEl.innerHTML = `<p class="status-message" style="color:#F28B82;">${err.message}</p>`;
+        if (!append) {
+          resultsEl.innerHTML = `<p class="status-message" style="color:#F28B82;">${err.message}</p>`;
+        }
+        loadMoreBtn.textContent = "Load more";
+        loadMoreWrap.style.display = "none";
       }
     }
 
-    function renderResults(data) {
+    function renderResults(data, append) {
       const resultsEl = document.getElementById("results");
-      if (!data.length) {
-        resultsEl.innerHTML = '<p class="status-message">No variants matched. Try a gene symbol, rsID, or HGVS notation.</p>';
-        return;
-      }
-      resultsEl.innerHTML = "";
+      if (!append) resultsEl.innerHTML = "";
       data.forEach((v) => {
         const s = sigStyle(v.clinvar_significance);
         const card = document.createElement("div");
@@ -359,9 +391,11 @@
       btn.addEventListener("click", () => {
         document.querySelectorAll(".filter-chip").forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
-        currentFilter = btn.dataset.filter;
-        searchVariants(document.getElementById("searchInput").value, currentFilter);
+        searchVariants(document.getElementById("searchInput").value, btn.dataset.filter);
       });
+    });
+    document.getElementById("loadMoreBtn").addEventListener("click", () => {
+      searchVariants(currentTerm, currentFilter, { append: true });
     });
 
     searchVariants("", "All");
