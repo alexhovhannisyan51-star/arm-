@@ -492,10 +492,6 @@
     }
     searchVariants(geneParam || "", "All");
 
-    window.addEventListener("DOMContentLoaded", () => {
-      document.body.classList.add("loaded");
-    });
-
     document.addEventListener("click", (e) => {
       const link = e.target.closest("a");
       if (!link) return;
@@ -508,6 +504,14 @@
         window.location.href = href;
       }, 200);
     });
+
+    if (document.readyState === "loading") {
+      window.addEventListener("DOMContentLoaded", () => {
+        document.body.classList.add("loaded");
+      });
+    } else {
+      document.body.classList.add("loaded");
+    }
   </script>
 
 </body>

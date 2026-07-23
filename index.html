@@ -84,7 +84,6 @@
       margin: 0;
     }
 
-    /* Feature buttons section */
     .features {
       max-width: 900px;
       margin: 0 auto;
@@ -161,7 +160,6 @@
       color: #63798A;
     }
 
-    /* Embedded contact section */
     .contact-preview {
       max-width: 900px;
       margin: 0 auto;
@@ -305,10 +303,6 @@
   </section>
 
   <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      document.body.classList.add("loaded");
-    });
-
     document.addEventListener("click", (e) => {
       const link = e.target.closest("a");
       if (!link) return;
@@ -321,6 +315,14 @@
         window.location.href = href;
       }, 200);
     });
+
+    if (document.readyState === "loading") {
+      window.addEventListener("DOMContentLoaded", () => {
+        document.body.classList.add("loaded");
+      });
+    } else {
+      document.body.classList.add("loaded");
+    }
   </script>
 
 </body>

@@ -153,4 +153,212 @@
     }
     .gene-card:hover { background: #12293F; border-color: #0C7C7C; }
     .gene-name {
-      font-family: 'Space Grotesk',
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 17px;
+      color: #6FD1C6;
+    }
+    .gene-count {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: #9FB3C2;
+      margin: 4px 0 8px;
+    }
+    .gene-conditions {
+      font-size: 12px;
+      color: #63798A;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <img src="logo.png" alt="Locus logo" style="height: 32px; width: auto;" />
+      <span class="logo">Locus</span>
+      <a href="database.html" class="back-link">← Back to Database</a>
+    </div>
+  </header>
+
+  <main>
+    <h1>Disease → Gene Catalog</h1>
+    <p class="subhead">
+      Type a condition name to see which genes are linked to it. You can search broad terms
+      like "cancer" or specific ones like "cystic fibrosis" -- partial words work too.
+    </p>
+
+    <div class="search-row">
+      <input id="diseaseInput" type="text" placeholder="e.g. cardiovascular, epilepsy, deafness" />
+      <button id="diseaseButton">Search</button>
+    </div>
+
+    <div class="examples">
+      <p class="examples-label">Conditions found in our database -- tap one to search:</p>
+      <div class="example-chips" id="exampleChips">
+        <span style="color:#63798A; font-size:13px;">Loading examples…</span>
+      </div>
+    </div>
+
+    <div id="results"></div>
+  </main>
+
+  <script>
+    const SUPABASE_URL = "https://bgbcudbidruynnzlxurh.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnYmN1ZGJpZHJ1eW5uemx4dXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2Nzk5NDYsImV4cCI6MjEwMDI1NTk0Nn0.pK7K0XZIZoXGv_s7_yq5tToZl0tY61rpkidVyRHP1Tw";
+
+    async function loadExamples() {
+      const chipsEl = document.getElementById("exampleChips");
+      try {
+        const params = new URLSearchParams();
+        params.set("select", "clinvar_conditions");
+        params.set("clinvar_conditions", "not.is.null");
+        params.set("limit", "1500");
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/variants?${params.toString()}&apikey=${SUPABASE_ANON_KEY}`);
+        if (!res.ok) throw new Error("could not load examples");
+        const rows = await res.json();
+
+        const counts = {};
+        const skip = ["not provided", "not specified", "see cases", "none provided"];
+
+        rows.forEach((row) => {
+          if (!row.clinvar_conditions) return;
+          row.clinvar_conditions.split(";").forEach((c) => {
+            const name = c.trim();
+            if (!name) return;
+            if (skip.includes(name.toLowerCase())) return;
+            if (name.length > 46) return;
+            counts[name] = (counts[name] || 0) + 1;
+          });
+        });
+
+        const top = Object.keys(counts)
+          .sort((a, b) => counts[b] - counts[a])
+          .slice(0, 20);
+
+        if (top.length === 0) {
+          chipsEl.innerHTML = '<span style="color:#63798A; font-size:13px;">No examples available.</span>';
+          return;
+        }
+
+        chipsEl.innerHTML = top
+          .map((name) => `<button class="example-chip" data-term="${name.replace(/"/g, "&quot;")}">${name}</button>`)
+          .join("");
+
+        chipsEl.querySelectorAll(".example-chip").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            document.getElementById("diseaseInput").value = btn.dataset.term;
+            searchDisease(btn.dataset.term);
+          });
+        });
+      } catch (e) {
+        chipsEl.innerHTML = '<span style="color:#63798A; font-size:13px;">Examples unavailable -- type a condition above.</span>';
+      }
+    }
+
+    async function searchDisease(term) {
+      const resultsEl = document.getElementById("results");
+      const t = term.trim().replace(/[,()%]/g, "");
+
+      if (!t) {
+        resultsEl.innerHTML = '<p class="status-message">Type a condition name above, or tap one of the examples.</p>';
+        return;
+      }
+
+      resultsEl.innerHTML = '<p class="status-message">Searching…</p>';
+
+      try {
+        const params = new URLSearchParams();
+        params.set("select", "gene,clinvar_conditions");
+        params.set("clinvar_conditions", `ilike.*${t}*`);
+        params.set("limit", "1000");
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/variants?${params.toString()}&apikey=${SUPABASE_ANON_KEY}`);
+        if (!res.ok) {
+          const body = await res.text();
+          throw new Error(`Supabase error ${res.status}: ${body.slice(0, 140)}`);
+        }
+        const data = await res.json();
+        renderGenes(data, t);
+      } catch (err) {
+        resultsEl.innerHTML = `<p class="status-message" style="color:#F28B82;">${err.message}</p>`;
+      }
+    }
+
+    function renderGenes(rows, term) {
+      const resultsEl = document.getElementById("results");
+      const geneMap = {};
+
+      rows.forEach((row) => {
+        if (!row.gene) return;
+        if (!geneMap[row.gene]) geneMap[row.gene] = { count: 0, conditions: new Set() };
+        geneMap[row.gene].count += 1;
+        if (row.clinvar_conditions) {
+          row.clinvar_conditions.split(";").forEach((c) => {
+            c = c.trim();
+            if (c.toLowerCase().includes(term.toLowerCase())) {
+              geneMap[row.gene].conditions.add(c);
+            }
+          });
+        }
+      });
+
+      const genes = Object.keys(geneMap).sort((a, b) => geneMap[b].count - geneMap[a].count);
+
+      if (genes.length === 0) {
+        resultsEl.innerHTML = '<p class="status-message">No genes found linked to that condition. Try a broader term, or tap one of the examples above.</p>';
+        return;
+      }
+
+      const summary = `<p class="result-summary">${genes.length} gene${genes.length !== 1 ? "s" : ""} linked to "${term}" -- tap a gene to see its variants.</p>`;
+
+      resultsEl.innerHTML = summary + `<div class="gene-grid">${genes
+        .map((gene) => {
+          const info = geneMap[gene];
+          const condList = Array.from(info.conditions).slice(0, 3).join(", ");
+          const more = info.conditions.size > 3 ? ` +${info.conditions.size - 3} more` : "";
+          return `
+            <a class="gene-card" href="database.html?gene=${encodeURIComponent(gene)}">
+              <div class="gene-name">${gene}</div>
+              <div class="gene-count">${info.count} matching variant${info.count !== 1 ? "s" : ""}</div>
+              <div class="gene-conditions">${condList}${more}</div>
+            </a>
+          `;
+        })
+        .join("")}</div>`;
+    }
+
+    document.getElementById("diseaseButton").addEventListener("click", () => {
+      searchDisease(document.getElementById("diseaseInput").value);
+    });
+    document.getElementById("diseaseInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") searchDisease(e.target.value);
+    });
+
+    loadExamples();
+
+    document.addEventListener("click", (e) => {
+      const link = e.target.closest("a");
+      if (!link) return;
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("tel:") || link.target === "_blank") return;
+
+      e.preventDefault();
+      document.body.classList.add("fading-out");
+      setTimeout(() => {
+        window.location.href = href;
+      }, 200);
+    });
+
+    if (document.readyState === "loading") {
+      window.addEventListener("DOMContentLoaded", () => {
+        document.body.classList.add("loaded");
+      });
+    } else {
+      document.body.classList.add("loaded");
+    }
+  </script>
+
+</body>
+</html>
