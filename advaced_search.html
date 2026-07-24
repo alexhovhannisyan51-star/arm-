@@ -361,16 +361,17 @@
       };
     }
 
-    function buildQuery(term) {
+       function buildQuery(term) {
       const raw = term.trim();
       if (!raw) return null;
-      const rsMatch = raw.match(/^rs(\d+)$/i);
+      const rsMatch = raw.match(/^rs\d+$/i);
       if (rsMatch) {
-        return `dbsnp.rsid:${rsMatch[1]} AND _exists_:clinvar.rcv`;
+        return `dbsnp.rsid:${raw.toLowerCase()} AND _exists_:clinvar.rcv`;
       }
       const safe = raw.replace(/["]/g, "");
       return `(dbnsfp.genename:${safe} OR dbnsfp.hgvsc:"${safe}" OR dbnsfp.hgvsp:"${safe}") AND _exists_:clinvar.rcv`;
     }
+
 
     let currentTerm = "";
     let currentFrom = 0;
