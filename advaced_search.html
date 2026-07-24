@@ -123,6 +123,11 @@
       padding: 40px 0;
       text-align: center;
     }
+    .result-count {
+      font-size: 13px;
+      color: #9FB3C2;
+      margin-bottom: 14px;
+    }
     .variant-card {
       display: flex;
       justify-content: space-between;
@@ -361,10 +366,10 @@
       if (!raw) return null;
       const rsMatch = raw.match(/^rs(\d+)$/i);
       if (rsMatch) {
-        return `dbsnp.rsid:${rsMatch[1]}`;
+        return `dbsnp.rsid:${rsMatch[1]} AND _exists_:clinvar.rcv`;
       }
       const safe = raw.replace(/["]/g, "");
-      return `dbnsfp.genename:${safe} OR dbnsfp.hgvsc:"${safe}" OR dbnsfp.hgvsp:"${safe}"`;
+      return `(dbnsfp.genename:${safe} OR dbnsfp.hgvsc:"${safe}" OR dbnsfp.hgvsp:"${safe}") AND _exists_:clinvar.rcv`;
     }
 
     let currentTerm = "";
@@ -414,7 +419,9 @@
           return;
         }
 
-        if (!append) resultsEl.innerHTML = "";
+        if (!append) {
+          resultsEl.innerHTML = `<p class="result-count">${total.toLocaleString()} classified variant${total !== 1 ? "s" : ""} found in ClinVar${total > hits.length ? ` -- showing first ${hits.length}` : ""}</p>`;
+        }
         hits.forEach((doc) => renderCard(flattenDoc(doc)));
 
         currentFrom += hits.length;
