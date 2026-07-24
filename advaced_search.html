@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Database -- Locus</title>
+  <title>Advanced Search -- Locus</title>
   <link rel="icon" type="image/png" href="logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -40,67 +40,11 @@
       font-weight: 700;
       font-size: 19px;
     }
-    .ai-badge {
+    .back-link {
+      margin-left: auto;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      margin-bottom: 14px;
-      cursor: help;
-    }
-    .ai-badge .square {
-      width: 22px;
-      height: 22px;
-      background: #0C7C7C;
-      color: white;
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      font-size: 11px;
-      border-radius: 5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .ai-badge span.label {
-      font-size: 12px;
-      color: #9FB3C2;
-    }
-    main {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 40px 24px 64px;
-    }
-    .title-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 8px;
-    }
-    h1 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      font-size: 28px;
-      margin: 0;
-    }
-    #variantCount {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 12px;
-      color: #6FD1C6;
-      background: rgba(12,124,124,0.15);
-      padding: 4px 10px;
-      border-radius: 999px;
-      white-space: nowrap;
-    }
-    .subhead {
-      color: #9FB3C2;
-      font-size: 15px;
-      margin: 0 0 16px;
-    }
-    .catalog-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 20px;
       padding: 8px 16px;
       border-radius: 8px;
       border: 1px solid #1E3A52;
@@ -108,11 +52,47 @@
       text-decoration: none;
       font-size: 13px;
     }
-    .catalog-link:hover { background: #12293F; }
+    .back-link:hover { background: #12293F; }
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 24px 64px;
+    }
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 14px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(12,124,124,0.15);
+      color: #6FD1C6;
+      font-size: 12px;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #6FD1C6;
+    }
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      margin: 0 0 8px;
+    }
+    .subhead {
+      color: #9FB3C2;
+      font-size: 15px;
+      margin: 0 0 24px;
+      max-width: 620px;
+      line-height: 1.6;
+    }
     .search-row {
       display: flex;
       gap: 10px;
-      margin-bottom: 16px;
+      margin-bottom: 24px;
       flex-wrap: wrap;
     }
     #searchInput {
@@ -136,27 +116,6 @@
       font-weight: 600;
       font-size: 14px;
       cursor: pointer;
-    }
-    .filters {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 24px;
-    }
-    .filter-chip {
-      padding: 6px 14px;
-      border-radius: 999px;
-      border: 1px solid #1E3A52;
-      background: transparent;
-      color: #9FB3C2;
-      font-size: 13px;
-      cursor: pointer;
-    }
-    .filter-chip.active {
-      border-color: #0C7C7C;
-      background: rgba(12,124,124,0.15);
-      color: #6FD1C6;
-      font-weight: 600;
     }
     .status-message {
       color: #63798A;
@@ -247,6 +206,21 @@
     }
     #panel p { font-size: 14px; margin: 2px 0; }
     #panel a { color: #6FD1C6; }
+
+    #loadMoreWrap {
+      display: none;
+      justify-content: center;
+      margin-top: 16px;
+    }
+    #loadMoreBtn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1px solid #1E3A52;
+      background: transparent;
+      color: #9FB3C2;
+      font-size: 14px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -255,48 +229,33 @@
     <div class="header-inner">
       <img src="logo.png" alt="Locus logo" style="height: 32px; width: auto;" />
       <span class="logo">Locus</span>
-          <nav style="margin-left: auto; display: flex; align-items: center; gap: 20px;">
+      <nav style="margin-left: auto; display: flex; align-items: center; gap: 20px;">
         <a href="index.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Home</a>
         <a href="database.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Database</a>
-        <a href="advaced_search.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Advanced Search</a>
+        <a href="advanced-search.html" style="color: #E8EEF2; text-decoration: none; font-size: 14px;">Advanced Search</a>
         <a href="contact.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Contact</a>
       </nav>
-
     </div>
   </header>
 
+
   <main>
-    <div class="ai-badge" title="CADD pathogenicity scores in this data are computed using a machine-learning model">
-      <span class="square">AI</span>
-      <span class="label">Powered by AI</span>
-    </div>
-
-    <div class="title-row">
-      <h1>Variant Database</h1>
-      <span id="variantCount">Loading count…</span>
-    </div>
-    <p class="subhead">Search by gene, rsID, or HGVS notation.</p>
-
-    <a href="catalog.html" class="catalog-link">🔎 Browse by disease/condition →</a>
+    <div class="live-badge"><span class="live-dot"></span> Live query -- searches all of ClinVar, not just our stored database</div>
+    <h1>Advanced Search</h1>
+    <p class="subhead">
+      Search directly against ClinVar's full, live dataset (millions of variants) via myvariant.info --
+      not limited to what's stored in Locus. Results may take a moment longer since this queries an external source in real time.
+    </p>
 
     <div class="search-row">
       <input id="searchInput" type="text" placeholder="e.g. BRCA1, rs334, c.5266dupC" />
       <button id="searchButton">Search</button>
     </div>
 
-    <div class="filters" id="filters">
-      <button class="filter-chip active" data-filter="All">All</button>
-      <button class="filter-chip" data-filter="Pathogenic">Pathogenic</button>
-      <button class="filter-chip" data-filter="Likely pathogenic">Likely pathogenic</button>
-      <button class="filter-chip" data-filter="Uncertain significance">VUS</button>
-      <button class="filter-chip" data-filter="Likely benign">Likely benign</button>
-      <button class="filter-chip" data-filter="Benign">Benign</button>
-    </div>
-
     <div id="results"></div>
 
-    <div id="loadMoreWrap" style="display:none; justify-content:center; margin-top: 16px;">
-      <button id="loadMoreBtn" style="padding: 10px 20px; border-radius: 8px; border: 1px solid #1E3A52; background: transparent; color: #9FB3C2; font-size: 14px; cursor: pointer;">Load more</button>
+    <div id="loadMoreWrap">
+      <button id="loadMoreBtn">Load more</button>
     </div>
   </main>
 
@@ -304,9 +263,17 @@
   <div id="panel" style="display:none;"></div>
 
   <script>
-    const SUPABASE_URL = "https://bgbcudbidruynnzlxurh.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnYmN1ZGJpZHJ1eW5uemx4dXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2Nzk5NDYsImV4cCI6MjEwMDI1NTk0Nn0.pK7K0XZIZoXGv_s7_yq5tToZl0tY61rpkidVyRHP1Tw";
-    const PAGE_SIZE = 60;
+    const MYVARIANT_URL = "https://myvariant.info/v1/query";
+    const PAGE_SIZE = 25;
+
+    const FIELDS = [
+      "chrom", "vcf.position", "vcf.ref", "vcf.alt",
+      "dbnsfp.genename", "dbnsfp.hgvsc", "dbnsfp.hgvsp",
+      "dbsnp.rsid",
+      "clinvar.rcv.clinical_significance", "clinvar.rcv.review_status", "clinvar.rcv.conditions.name",
+      "gnomad_exome.af.af", "gnomad_genome.af.af",
+      "cadd.phred",
+    ].join(",");
 
     const SIG_STYLES = {
       "Pathogenic": { color: "#F28B82", bg: "rgba(242,139,130,0.15)", label: "Pathogenic" },
@@ -321,112 +288,166 @@
       return SIG_STYLES[sig] || UNKNOWN_SIG;
     }
 
-    let currentFilter = "All";
+    function starCount(reviewStatus) {
+      if (!reviewStatus) return 0;
+      const s = reviewStatus.toLowerCase();
+      if (s.includes("practice guideline")) return 4;
+      if (s.includes("expert panel")) return 3;
+      if (s.includes("multiple submitters") && s.includes("no conflict")) return 2;
+      if (s.includes("single submitter") || s.includes("conflicting")) return 1;
+      return 0;
+    }
+
+    function first(v) {
+      if (Array.isArray(v)) return v.length ? v[0] : null;
+      return v == null ? null : v;
+    }
+
+    function asList(v) {
+      if (v == null) return [];
+      return Array.isArray(v) ? v : [v];
+    }
+
+    function flattenDoc(doc) {
+      const vcf = doc.vcf || {};
+      const dbnsfp = doc.dbnsfp || {};
+      const dbsnp = doc.dbsnp || {};
+      const clinvar = doc.clinvar || {};
+      const gnomadExome = doc.gnomad_exome || {};
+      const gnomadGenome = doc.gnomad_genome || {};
+      const cadd = doc.cadd || {};
+
+      const rcvList = asList(clinvar.rcv);
+      const significance = rcvList.length ? first(rcvList[0].clinical_significance) : null;
+      const reviewStatus = rcvList.length ? rcvList[0].review_status : null;
+
+      const conditionsSet = new Set();
+      rcvList.forEach((rcv) => {
+        asList(rcv.conditions).forEach((cond) => {
+          if (cond && cond.name) conditionsSet.add(cond.name);
+        });
+      });
+
+      const gene = first(dbnsfp.genename);
+      const hgvsC = first(dbnsfp.hgvsc);
+      const hgvsP = first(dbnsfp.hgvsp);
+      const rsidRaw = first(dbsnp.rsid);
+      const caddPhred = first(cadd.phred);
+
+      const afExome = gnomadExome.af && typeof gnomadExome.af === "object" ? gnomadExome.af.af : null;
+      const afGenome = gnomadGenome.af && typeof gnomadGenome.af === "object" ? gnomadGenome.af.af : null;
+
+      return {
+        variant_id: doc._id,
+        chrom: doc.chrom || null,
+        pos: vcf.position || null,
+        ref: vcf.ref || null,
+        alt: vcf.alt || null,
+        gene: gene || null,
+        rsid: rsidRaw ? (String(rsidRaw).startsWith("rs") ? rsidRaw : `rs${rsidRaw}`) : null,
+        hgvs_c: hgvsC || null,
+        hgvs_p: hgvsP || null,
+        clinvar_significance: significance || null,
+        clinvar_review_status: reviewStatus || null,
+        clinvar_conditions: conditionsSet.size ? Array.from(conditionsSet).sort().join("; ") : null,
+        gnomad_af_exome: afExome,
+        gnomad_af_genome: afGenome,
+        cadd_phred: caddPhred,
+      };
+    }
+
+    function buildQuery(term) {
+      const raw = term.trim();
+      if (!raw) return null;
+      const rsMatch = raw.match(/^rs(\d+)$/i);
+      if (rsMatch) {
+        return `dbsnp.rsid:${rsMatch[1]}`;
+      }
+      const safe = raw.replace(/["]/g, "");
+      return `dbnsfp.genename:${safe} OR dbnsfp.hgvsc:"${safe}" OR dbnsfp.hgvsp:"${safe}"`;
+    }
+
     let currentTerm = "";
-    let currentOffset = 0;
+    let currentFrom = 0;
 
-    async function loadVariantCount() {
-      const el = document.getElementById("variantCount");
-      try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/variant_count?apikey=${SUPABASE_ANON_KEY}`);
-        if (!res.ok) throw new Error("count unavailable");
-        const data = await res.json();
-        const count = typeof data === "number" ? data : (Array.isArray(data) ? data[0] : data);
-        if (typeof count === "number") {
-          el.textContent = count.toLocaleString() + " variants indexed";
-        } else {
-          el.textContent = "";
-        }
-      } catch (e) {
-        el.textContent = "";
-      }
-    }
-
-    function buildParams(term, filter, offset) {
-      const params = new URLSearchParams();
-      params.set("select", "*");
-      params.set("limit", String(PAGE_SIZE));
-      params.set("offset", String(offset));
-      params.set("order", "gene.asc");
-
-      const t = term.trim().replace(/[,()%]/g, "");
-      if (t) {
-        params.set("or", `(gene.ilike.*${t}*,rsid.ilike.*${t}*,hgvs_c.ilike.*${t}*,hgvs_p.ilike.*${t}*,variant_id.ilike.*${t}*)`);
-      }
-      if (filter && filter !== "All") {
-        params.set("clinvar_significance", `eq.${filter}`);
-      }
-      return params;
-    }
-
-    async function searchVariants(term, filter, options) {
+    async function runSearch(term, options) {
       options = options || {};
       const append = options.append || false;
       const resultsEl = document.getElementById("results");
       const loadMoreWrap = document.getElementById("loadMoreWrap");
       const loadMoreBtn = document.getElementById("loadMoreBtn");
 
+      const query = buildQuery(term);
+      if (!query) {
+        resultsEl.innerHTML = '<p class="status-message">Type a gene symbol, rsID, or HGVS notation to search all of ClinVar.</p>';
+        loadMoreWrap.style.display = "none";
+        return;
+      }
+
       currentTerm = term;
-      currentFilter = filter;
       if (!append) {
-        currentOffset = 0;
-        resultsEl.innerHTML = '<p class="status-message">Loading…</p>';
+        currentFrom = 0;
+        resultsEl.innerHTML = '<p class="status-message">Searching live ClinVar data…</p>';
         loadMoreWrap.style.display = "none";
       } else {
         loadMoreBtn.textContent = "Loading…";
       }
 
       try {
-        const params = buildParams(term, filter, currentOffset);
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/variants?${params.toString()}&apikey=${SUPABASE_ANON_KEY}`);
+        const params = new URLSearchParams();
+        params.set("q", query);
+        params.set("fields", FIELDS);
+        params.set("size", String(PAGE_SIZE));
+        params.set("from", String(currentFrom));
 
+        const res = await fetch(`${MYVARIANT_URL}?${params.toString()}`);
         if (!res.ok) {
-          const body = await res.text();
-          throw new Error(`Supabase error ${res.status}: ${body.slice(0, 140)}`);
+          throw new Error(`myvariant.info returned ${res.status}`);
         }
-
         const data = await res.json();
+        const hits = data.hits || [];
+        const total = data.total || 0;
 
-        if (!append && data.length === 0) {
-          resultsEl.innerHTML = '<p class="status-message">No variants matched. Try a gene symbol, rsID, or HGVS notation.</p>';
-        } else {
-          renderResults(data, append);
+        if (!append && hits.length === 0) {
+          resultsEl.innerHTML = '<p class="status-message">No matches found in ClinVar. Try a different gene, rsID, or HGVS notation.</p>';
+          loadMoreWrap.style.display = "none";
+          return;
         }
 
-        currentOffset += data.length;
-        loadMoreWrap.style.display = data.length === PAGE_SIZE ? "flex" : "none";
+        if (!append) resultsEl.innerHTML = "";
+        hits.forEach((doc) => renderCard(flattenDoc(doc)));
+
+        currentFrom += hits.length;
+        loadMoreWrap.style.display = currentFrom < total && hits.length > 0 ? "flex" : "none";
         loadMoreBtn.textContent = "Load more";
       } catch (err) {
         if (!append) {
           resultsEl.innerHTML = `<p class="status-message" style="color:#F28B82;">${err.message}</p>`;
         }
-        loadMoreBtn.textContent = "Load more";
         loadMoreWrap.style.display = "none";
+        loadMoreBtn.textContent = "Load more";
       }
     }
 
-    function renderResults(data, append) {
+    function renderCard(v) {
       const resultsEl = document.getElementById("results");
-      if (!append) resultsEl.innerHTML = "";
-      data.forEach((v) => {
-        const s = sigStyle(v.clinvar_significance);
-        const card = document.createElement("div");
-        card.className = "variant-card";
-        card.style.borderLeftColor = s.color;
-        card.innerHTML = `
-          <div style="min-width:0;">
-            <span class="variant-gene">${v.gene || "--"}</span>
-            <span class="variant-badge" style="background:${s.bg}; color:${s.color};">${s.label}</span>
-            <div class="variant-detail">${v.hgvs_c || v.variant_id || ""} ${v.hgvs_p ? "· " + v.hgvs_p : ""} ${v.rsid ? "· " + v.rsid : ""}</div>
-          </div>
-          <div class="variant-freq">
-            <div class="freq-label">gnomAD AF</div>
-            ${v.gnomad_af_exome ? Number(v.gnomad_af_exome).toExponential(2) : "--"}
-          </div>
-        `;
-        card.addEventListener("click", () => openDetail(v));
-        resultsEl.appendChild(card);
-      });
+      const s = sigStyle(v.clinvar_significance);
+      const card = document.createElement("div");
+      card.className = "variant-card";
+      card.style.borderLeftColor = s.color;
+      card.innerHTML = `
+        <div style="min-width:0;">
+          <span class="variant-gene">${v.gene || "--"}</span>
+          <span class="variant-badge" style="background:${s.bg}; color:${s.color};">${s.label}</span>
+          <div class="variant-detail">${v.hgvs_c || v.variant_id || ""} ${v.hgvs_p ? "· " + v.hgvs_p : ""} ${v.rsid ? "· " + v.rsid : ""}</div>
+        </div>
+        <div class="variant-freq">
+          <div class="freq-label">gnomAD AF</div>
+          ${v.gnomad_af_exome ? Number(v.gnomad_af_exome).toExponential(2) : "--"}
+        </div>
+      `;
+      card.addEventListener("click", () => openDetail(v));
+      resultsEl.appendChild(card);
     }
 
     function openDetail(v) {
@@ -438,7 +459,10 @@
         <h2>${v.gene || "Unknown gene"}</h2>
         <p style="color:#63798A; font-family:'IBM Plex Mono', monospace; font-size:12px; word-break:break-all;">${v.variant_id || ""}</p>
         <span class="variant-badge" style="background:${s.bg}; color:${s.color}; display:inline-block; margin-top:8px;">${s.label}</span>
-        <p style="color:#9FB3C2; font-size:13px; margin-top:6px;">${v.clinvar_review_status || "No review status"}</p>
+        <div style="margin-top:8px; display:flex; align-items:center; gap:8px;">
+          ${[0, 1, 2, 3].map((i) => `<span style="color:${i < starCount(v.clinvar_review_status) ? "#B8860B" : "#D8DCE0"}; font-size:12px;">★</span>`).join("")}
+          <span style="font-size:12px; color:#8B9A9F;">${v.clinvar_review_status || "No review status"}</span>
+        </div>
 
         <div class="section-label">Nomenclature</div>
         <p style="font-family:'IBM Plex Mono', monospace;">${v.hgvs_c || "--"}</p>
@@ -469,37 +493,20 @@
     document.getElementById("overlay").addEventListener("click", closeDetail);
 
     document.getElementById("searchButton").addEventListener("click", () => {
-      searchVariants(document.getElementById("searchInput").value, currentFilter);
+      runSearch(document.getElementById("searchInput").value);
     });
     document.getElementById("searchInput").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") searchVariants(e.target.value, currentFilter);
-    });
-    document.querySelectorAll(".filter-chip").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".filter-chip").forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        searchVariants(document.getElementById("searchInput").value, btn.dataset.filter);
-      });
+      if (e.key === "Enter") runSearch(e.target.value);
     });
     document.getElementById("loadMoreBtn").addEventListener("click", () => {
-      searchVariants(currentTerm, currentFilter, { append: true });
+      runSearch(currentTerm, { append: true });
     });
-
-    loadVariantCount();
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const geneParam = urlParams.get("gene");
-    if (geneParam) {
-      document.getElementById("searchInput").value = geneParam;
-    }
-    searchVariants(geneParam || "", "All");
 
     document.addEventListener("click", (e) => {
       const link = e.target.closest("a");
       if (!link) return;
       const href = link.getAttribute("href");
       if (!href || href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("tel:") || link.target === "_blank") return;
-
       e.preventDefault();
       document.body.classList.add("fading-out");
       setTimeout(() => {
