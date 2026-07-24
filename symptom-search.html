@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Symptom Search -- Locus</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #0B1D30;
+      color: #E8EEF2;
+      font-family: 'IBM Plex Sans', sans-serif;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    body.loaded { opacity: 1; }
+    body.fading-out { opacity: 0; }
+
+    header {
+      border-bottom: 1px solid #1E3A52;
+      padding: 16px 24px;
+    }
+    .header-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 19px;
+    }
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 24px 64px;
+    }
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      margin: 0 0 8px;
+    }
+    .subhead {
+      color: #9FB3C2;
+      font-size: 15px;
+      margin: 0 0 24px;
+      max-width: 640px;
+      line-height: 1.6;
+    }
+    .search-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    #symptomInput {
+      flex: 1;
+      min-width: 220px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid #1E3A52;
+      background: #0F2438;
+      color: #E8EEF2;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 14px;
+    }
+    #symptomInput::placeholder { color: #63798A; }
+    #addButton {
+      padding: 12px 22px;
+      border-radius: 8px;
+      border: none;
+      background: #0C7C7C;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 24px;
+      min-height: 20px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(12,124,124,0.15);
+      color: #6FD1C6;
+      font-size: 13px;
+    }
+    .chip button {
+      background: none;
+      border: none;
+      color: #6FD1C6;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0;
+    }
+    .status-message {
+      color: #63798A;
+      font-size: 14px;
+      padding: 40px 0;
+      text-align: center;
+    }
+    .result-summary {
+      font-size: 13px;
+      color: #9FB3C2;
+      margin-bottom: 14px;
+    }
+    .gene-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .gene-card {
+      display: block;
+      background: #0F2438;
+      border: 1px solid #1E3A52;
+      border-radius: 8px;
+      padding: 14px 16px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .gene-card:hover { background: #12293F; border-color: #0C7C7C; }
+    .gene-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 17px;
+      color: #6FD1C6;
+    }
+    .gene-match {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: #9FB3C2;
+      margin: 4px 0 8px;
+    }
+    .gene-terms {
+      font-size: 12px;
+      color: #63798A;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <img src="logo.png" alt="Locus logo" style="height: 32px; width: auto;" />
+      <span class="logo">Locus</span>
+      <nav style="margin-left: auto; display: flex; align-items: center; gap: 20px;">
+        <a href="index.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Home</a>
+        <a href="database.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Database</a>
+        <a href="advaced_search.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Advanced Search</a>
+        <a href="symptom-search.html" style="color: #E8EEF2; text-decoration: none; font-size: 14px;">Symptom Search</a>
+        <a href="contact.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>Symptom Search</h1>
+    <p class="subhead">
+      Add multiple symptoms to find genes commonly linked to that combination, based on the Human Phenotype
+      Ontology (HPO). The more symptoms you add, the more specific the matches.
+    </p>
+
+    <div class="search-row">
+      <input id="symptomInput" type="text" placeholder="e.g. seizure, hearing loss, developmental delay" />
+      <button id="addButton">Add symptom</button>
+    </div>
+
+    <div class="chips" id="chips"></div>
+
+    <div id="results"></div>
+  </main>
+
+  <script>
+    const SUPABASE_URL = "https://bgbcudbidruynnzlxurh.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnYmN1ZGJpZHJ1eW5uemx4dXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2Nzk5NDYsImV4cCI6MjEwMDI1NTk0Nn0.pK7K0XZIZoXGv_s7_yq5tToZl0tY61rpkidVyRHP1Tw";
+
+    let symptoms = [];
+
+    function renderChips() {
+      const chipsEl = document.getElementById("chips");
+      chipsEl.innerHTML = symptoms
+        .map((s, i) => `<span class="chip">${s} <button data-index="${i}">✕</button></span>`)
+        .join("");
+      chipsEl.querySelectorAll("button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          symptoms.splice(Number(btn.dataset.index), 1);
+          renderChips();
+          runSearch();
+        });
+      });
+    }
+
+    async function fetchGenesForSymptom(term) {
+      const params = new URLSearchParams();
+      params.set("select", "gene,phenotype_name");
+      params.set("phenotype_name", `ilike.*${term}*`);
+      params.set("limit", "2000");
+
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/hpo_phenotypes?${params.toString()}&apikey=${SUPABASE_ANON_KEY}`);
+      if (!res.ok) throw new Error(`Supabase error ${res.status}`);
+      return res.json();
+    }
+
+    async function runSearch() {
+      const resultsEl = document.getElementById("results");
+
+      if (symptoms.length === 0) {
+        resultsEl.innerHTML = '<p class="status-message">Add one or more symptoms above to see candidate genes.</p>';
+        return;
+      }
+
+      resultsEl.innerHTML = '<p class="status-message">Searching…</p>';
+
+      try {
+        const geneMatches = {}; // gene -> { count, terms: Set, symptomsMatched: Set }
+
+        for (const symptom of symptoms) {
+          const rows = await fetchGenesForSymptom(symptom);
+          const genesForThisSymptom = new Set();
+
+          rows.forEach((row) => {
+            if (!row.gene) return;
+            if (!geneMatches[row.gene]) {
+              geneMatches[row.gene] = { symptomsMatched: new Set(), terms: new Set() };
+            }
+            geneMatches[row.gene].symptomsMatched.add(symptom);
+            if (row.phenotype_name) geneMatches[row.gene].terms.add(row.phenotype_name);
+            genesForThisSymptom.add(row.gene);
+          });
+        }
+
+        const genes = Object.keys(geneMatches).sort((a, b) => {
+          return geneMatches[b].symptomsMatched.size - geneMatches[a].symptomsMatched.size;
+        });
+
+        if (genes.length === 0) {
+          resultsEl.innerHTML = '<p class="status-message">No genes found matching those symptoms. Try broader or different terms.</p>';
+          return;
+        }
+
+        const summary = `<p class="result-summary">${genes.length} gene${genes.length !== 1 ? "s" : ""} found across ${symptoms.length} symptom${symptoms.length !== 1 ? "s" : ""} -- sorted by how many symptoms each gene matches.</p>`;
+
+        resultsEl.innerHTML = summary + `<div class="gene-grid">${genes
+          .slice(0, 100)
+          .map((gene) => {
+            const info = geneMatches[gene];
+            const termList = Array.from(info.terms).slice(0, 3).join(", ");
+            const more = info.terms.size > 3 ? ` +${info.terms.size - 3} more` : "";
+            return `
+              <a class="gene-card" href="database.html?gene=${encodeURIComponent(gene)}">
+                <div class="gene-name">${gene}</div>
+                <div class="gene-match">Matches ${info.symptomsMatched.size} of ${symptoms.length} symptom${symptoms.length !== 1 ? "s" : ""}</div>
+                <div class="gene-terms">${termList}${more}</div>
+              </a>
+            `;
+          })
+          .join("")}</div>`;
+      } catch (err) {
+        resultsEl.innerHTML = `<p class="status-message" style="color:#F28B82;">${err.message}</p>`;
+      }
+    }
+
+    function addSymptom() {
+      const input = document.getElementById("symptomInput");
+      const val = input.value.trim();
+      if (!val) return;
+      if (!symptoms.includes(val)) {
+        symptoms.push(val);
+        renderChips();
+        runSearch();
+      }
+      input.value = "";
+      input.focus();
+    }
+
+    document.getElementById("addButton").addEventListener("click", addSymptom);
+    document.getElementById("symptomInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addSymptom();
+      }
+    });
+
+    runSearch();
+
+    document.addEventListener("click", (e) => {
+      const link = e.target.closest("a");
+      if (!link) return;
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("tel:") || link.target === "_blank") return;
+      e.preventDefault();
+      document.body.classList.add("fading-out");
+      setTimeout(() => {
+        window.location.href = href;
+      }, 200);
+    });
+
+    if (document.readyState === "loading") {
+      window.addEventListener("DOMContentLoaded", () => {
+        document.body.classList.add("loaded");
+      });
+    } else {
+      document.body.classList.add("loaded");
+    }
+  </script>
+
+</body>
+</html>
