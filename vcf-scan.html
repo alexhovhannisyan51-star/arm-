@@ -195,7 +195,80 @@
       color: #63798A; margin: 18px 0 6px;
     }
     #panel a { color: #6FD1C6; }
+    .case-search-btn {
+      margin-top: 8px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid #1E3A52;
+      background: transparent;
+      color: #6FD1C6;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .case-search-btn:disabled { opacity: 0.5; cursor: default; }
+    .case-report-card {
+      display: block;
+      background: #0B1D30;
+      border: 1px solid #1E3A52;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-top: 8px;
+      text-decoration: none;
+    }
+    .case-report-title { color: #E8EEF2; font-size: 13px; line-height: 1.4; margin-bottom: 4px; }
+    .case-report-meta { color: #63798A; font-size: 11px; font-family: 'IBM Plex Mono', monospace; }
     #panel p { font-size: 13px; margin: 2px 0; color: #E8EEF2; }
+
+    /* ---- Computational ACMG section ---- */
+    .acmg-section { margin-top: 36px; padding-top: 28px; border-top: 1px solid #1E3A52; }
+    .acmg-heading { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px; margin: 0 0 6px; }
+    .acmg-sub { color: #9FB3C2; font-size: 13px; margin: 0 0 14px; line-height: 1.6; max-width: 640px; }
+    .acmg-run-btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1px solid #0C7C7C;
+      background: rgba(12,124,124,0.12);
+      color: #6FD1C6;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .acmg-run-btn:disabled { opacity: 0.5; cursor: default; }
+    .acmg-progress { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9FB3C2; margin-top: 10px; }
+    .acmg-summary { font-size: 13px; color: #9FB3C2; margin: 16px 0; }
+    .acmg-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: #0F2438;
+      border: 1px dashed #35506A;
+      border-left: 4px solid #64748B;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .acmg-card:hover { background: #12293F; }
+    .computational-tag {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(159,179,194,0.15);
+      color: #9FB3C2;
+      margin-left: 6px;
+    }
+    .criteria-row {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: #0B1D30;
+      margin-bottom: 6px;
+    }
+    .criteria-row .code { font-weight: 700; margin-right: 8px; }
   </style>
 </head>
 <body>
@@ -223,13 +296,7 @@
       clinically significant.
     </p>
 
-    <div class="disclaimer">
-      <strong>Read this first:</strong> this checks your file against a sample of ~15,000-20,000 ClinVar
-      variants, not the full ClinVar database. A "no matches" result means nothing dangerous was found
-      <em>in that sample</em> -- it is not a clean bill of health. This tool assumes a GRCh38-aligned VCF
-      and is for exploration/demo purposes only, not a diagnosis. Your file is parsed entirely in your
-      browser and never uploaded anywhere.
-    </div>
+    
 
     <div id="dropzone" class="dropzone">
       <div class="dropzone-icon">🧬</div>
@@ -268,6 +335,25 @@
     </div>
 
     <div id="results"></div>
+
+    <div class="acmg-section" id="acmgSection" style="display:none;">
+      <h2 class="acmg-heading">Computational ACMG estimate</h2>
+      <p class="acmg-sub">
+        For variants in your file that aren't already classified in our ClinVar database, we can run a
+        <strong style="color:#E8EEF2;">simplified</strong> ACMG-style check using live population frequency
+        (gnomAD) and CADD deleteriousness data from myvariant.info. This only evaluates 5 of the ~28 official
+        ACMG criteria (PM2, BA1, BS1, PP3, BP4) -- it has no access to functional studies, segregation data,
+        de novo status, or hotspot information, so it will almost never reach a strict "Pathogenic" call, and
+        that's intentional: those calls require stronger evidence than frequency and CADD alone can provide.
+        <strong style="color:#E8EEF2;">This is not a clinical classification.</strong> Only simple
+        single-nucleotide substitutions are checked (not indels), and only up to 500 unmatched variants per
+        scan, out of respect for the third-party API.
+      </p>
+      <button class="acmg-run-btn" id="acmgRunBtn">Run computational ACMG check</button>
+      <div class="acmg-progress" id="acmgProgress" style="display:none;"></div>
+      <div class="acmg-summary" id="acmgSummary" style="display:none;"></div>
+      <div id="acmgResults"></div>
+    </div>
   </main>
 
   <div id="overlay"></div>
@@ -280,6 +366,13 @@
     const MAX_FILE_BYTES = 180 * 1024 * 1024; // ~180MB guard, browser text parsing gets slow beyond this
     const POS_BATCH_SIZE = 300;
     const YIELD_EVERY_LINES = 8000;
+    const MYVARIANT_URL = "https://myvariant.info/v1/variant";
+    const MAX_ACMG_CHECK = 500;   // cap on unmatched variants sent to myvariant.info per run
+    const MYVARIANT_BATCH_SIZE = 150;
+
+    function isSimpleSNV(v) {
+      return /^[ACGT]$/.test(v.ref) && /^[ACGT]$/.test(v.alt);
+    }
 
     const SIG_STYLES = {
       "Pathogenic": { color: "#F28B82", bg: "rgba(242,139,130,0.15)", label: "Pathogenic" },
@@ -293,6 +386,9 @@
     let matchedRecords = []; // full candidate set (danger + VUS), for client-side tier toggling
     let currentTier = "danger";
     let totalParsed = 0;
+    let allVariantList = [];   // every parsed VCF row, flat, for computing the unmatched set
+    let unmatchedVariants = []; // parsed rows with no hit anywhere in Supabase
+    let acmgResults = [];       // computational ACMG results once the check has run
 
     // ---------- File handling ----------
     const dropzone = document.getElementById("dropzone");
@@ -325,6 +421,18 @@
       document.getElementById("filtersRow").style.display = "none";
       document.getElementById("results").innerHTML = "";
       matchedRecords = [];
+      allVariantList = [];
+      unmatchedVariants = [];
+      acmgResults = [];
+      document.getElementById("acmgSection").style.display = "none";
+      document.getElementById("acmgSummary").style.display = "none";
+      document.getElementById("acmgSummary").innerHTML = "";
+      document.getElementById("acmgResults").innerHTML = "";
+      document.getElementById("acmgProgress").style.display = "none";
+      const btn = document.getElementById("acmgRunBtn");
+      btn.disabled = false;
+      btn.textContent = "Run computational ACMG check";
+      btn.style.display = "inline-block";
     }
 
     async function handleFile(file) {
@@ -403,6 +511,8 @@
             if (!byRsid[rsid]) byRsid[rsid] = [];
             byRsid[rsid].push({ chrom, pos, ref, alt, zyg });
           }
+
+          allVariantList.push({ chrom, pos, ref, alt, rsid, zyg });
         });
 
         if (i % YIELD_EVERY_LINES === 0) {
@@ -434,7 +544,23 @@
       setTimeout(() => { progressWrap.style.display = "none"; }, 400);
 
       matchedRecords = found;
+
+      const matchedKeySet = new Set(
+        found.map((r) => `${r.chrom}:${r.pos}:${(r.ref || "").toUpperCase()}:${(r.alt || "").toUpperCase()}`)
+      );
+      unmatchedVariants = allVariantList.filter(
+        (v) => !matchedKeySet.has(`${v.chrom}:${v.pos}:${v.ref}:${v.alt}`)
+      );
+
       renderSummaryAndResults();
+
+      document.getElementById("acmgSection").style.display = "block";
+      const eligibleCount = unmatchedVariants.filter(isSimpleSNV).length;
+      document.getElementById("acmgRunBtn").textContent =
+        eligibleCount > 0
+          ? `Run computational ACMG check (${Math.min(eligibleCount, MAX_ACMG_CHECK).toLocaleString()} of ${eligibleCount.toLocaleString()} eligible variants)`
+          : "No eligible unmatched variants to check";
+      document.getElementById("acmgRunBtn").disabled = eligibleCount === 0;
     }
 
     function normalizeChrom(raw) {
@@ -533,6 +659,217 @@
       }
 
       return Array.from(matchesByKey.values());
+    }
+
+    // ---------- Computational ACMG engine ----------
+    // Only 5 of the ~28 official ACMG/AMP criteria are computable from frequency + CADD alone.
+    // Combining logic mirrors the real ACMG point system (Richards et al. 2015) -- it is NOT
+    // relaxed to force a "dangerous" verdict; with this little evidence, most variants correctly
+    // land as VUS or Likely benign, and outright "Pathogenic" is effectively unreachable, same as
+    // it would be for a human curator working from only these two data points.
+    function estimateACMG(af, cadd) {
+      const criteria = [];
+      const path = { strong: 0, moderate: 0, supporting: 0 };
+      const benign = { standalone: 0, strong: 0, supporting: 0 };
+
+      if (af == null) {
+        criteria.push({ code: "PM2", type: "pathogenic", weight: "Moderate", desc: "Absent from population databases (gnomAD)." });
+        path.moderate++;
+      } else if (af >= 0.05) {
+        criteria.push({ code: "BA1", type: "benign", weight: "Stand-alone", desc: `Allele frequency ${(af * 100).toFixed(2)}% -- far too common to be a rare-disease variant.` });
+        benign.standalone++;
+      } else if (af >= 0.01) {
+        criteria.push({ code: "BS1", type: "benign", weight: "Strong", desc: `Allele frequency ${(af * 100).toFixed(2)}% -- higher than expected for a rare pathogenic variant.` });
+        benign.strong++;
+      } else if (af < 0.0001) {
+        criteria.push({ code: "PM2", type: "pathogenic", weight: "Moderate", desc: `Allele frequency ${(af * 100).toFixed(4)}% -- rare in population databases.` });
+        path.moderate++;
+      }
+      // Between 0.01% and 1% AF: no strong signal either way under these two criteria; none applied.
+
+      if (cadd != null) {
+        if (cadd >= 20) {
+          criteria.push({ code: "PP3", type: "pathogenic", weight: "Supporting", desc: `CADD Phred ${cadd} -- computational evidence supports a deleterious effect.` });
+          path.supporting++;
+        } else if (cadd < 10) {
+          criteria.push({ code: "BP4", type: "benign", weight: "Supporting", desc: `CADD Phred ${cadd} -- computational evidence does not support a deleterious effect.` });
+          benign.supporting++;
+        }
+      }
+
+      let tier = "Uncertain significance";
+      if (benign.standalone >= 1) tier = "Benign";
+      else if (benign.strong >= 2) tier = "Benign";
+      else if (benign.strong >= 1 && benign.supporting >= 1) tier = "Likely benign";
+      else if (benign.supporting >= 2) tier = "Likely benign";
+      else if (path.strong >= 2) tier = "Pathogenic";
+      else if (path.strong >= 1 && path.moderate >= 1) tier = "Likely pathogenic";
+      else if (path.moderate >= 3) tier = "Likely pathogenic";
+
+      return { tier, criteria };
+    }
+
+    function chunkArray(arr, size) {
+      const out = [];
+      for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+      return out;
+    }
+
+    function toHgvsId(v) {
+      // Simple SNV genomic HGVS notation myvariant.info expects, GRCh38 assembly.
+      return `chr${v.chrom}:g.${v.pos}${v.ref}>${v.alt}`;
+    }
+
+    async function fetchMyvariantBatch(hgvsIds) {
+      const body = `ids=${hgvsIds.join(",")}&assembly=hg38&fields=cadd.phred,gnomad_exome.af,gnomad_genome.af,dbnsfp.genename,dbnsfp.hgvsc,dbnsfp.hgvsp,dbsnp.rsid`;
+      const res = await fetch(MYVARIANT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+      });
+      if (!res.ok) throw new Error(`myvariant.info error ${res.status}`);
+      return res.json();
+    }
+
+    document.getElementById("acmgRunBtn").addEventListener("click", runAcmgCheck);
+
+    async function runAcmgCheck() {
+      const btn = document.getElementById("acmgRunBtn");
+      const progressEl = document.getElementById("acmgProgress");
+      btn.disabled = true;
+      progressEl.style.display = "block";
+      progressEl.textContent = "Preparing…";
+
+      const eligible = unmatchedVariants.filter(isSimpleSNV).slice(0, MAX_ACMG_CHECK);
+      if (eligible.length === 0) {
+        progressEl.textContent = "No eligible variants to check.";
+        return;
+      }
+
+      const idToVariant = new Map();
+      eligible.forEach((v) => idToVariant.set(toHgvsId(v), v));
+      const batches = chunkArray(Array.from(idToVariant.keys()), MYVARIANT_BATCH_SIZE);
+
+      const results = [];
+      for (let b = 0; b < batches.length; b++) {
+        progressEl.textContent = `Checking population/CADD data… batch ${b + 1} of ${batches.length}`;
+        try {
+          const rows = await fetchMyvariantBatch(batches[b]);
+          const list = Array.isArray(rows) ? rows : [rows];
+          list.forEach((row) => {
+            if (!row || row.notfound) return;
+            const srcVariant = idToVariant.get(row.query || row._id);
+            if (!srcVariant) return;
+
+            const gnomadExomeAf = row.gnomad_exome && row.gnomad_exome.af ? row.gnomad_exome.af.af : null;
+            const gnomadGenomeAf = row.gnomad_genome && row.gnomad_genome.af ? row.gnomad_genome.af.af : null;
+            const af = [gnomadExomeAf, gnomadGenomeAf].filter((x) => typeof x === "number").sort((a, c) => c - a)[0] ?? null;
+            const cadd = row.cadd && typeof row.cadd.phred === "number" ? row.cadd.phred : null;
+
+            const { tier, criteria } = estimateACMG(af, cadd);
+            const gene = row.dbnsfp ? (Array.isArray(row.dbnsfp.genename) ? row.dbnsfp.genename[0] : row.dbnsfp.genename) : null;
+            const hgvsC = row.dbnsfp ? (Array.isArray(row.dbnsfp.hgvsc) ? row.dbnsfp.hgvsc[0] : row.dbnsfp.hgvsc) : null;
+
+            results.push({
+              variant: srcVariant,
+              gene: gene || null,
+              hgvs_c: hgvsC || null,
+              af,
+              cadd,
+              tier,
+              criteria,
+            });
+          });
+        } catch (e) {
+          // one batch failing shouldn't kill the whole run
+        }
+        await nextTick();
+      }
+
+      acmgResults = results;
+      progressEl.style.display = "none";
+      btn.style.display = "none";
+      renderAcmgResults(eligible.length);
+    }
+
+    function renderAcmgResults(checkedCount) {
+      const summaryEl = document.getElementById("acmgSummary");
+      const resultsEl = document.getElementById("acmgResults");
+
+      const notable = acmgResults.filter((r) => r.tier === "Pathogenic" || r.tier === "Likely pathogenic");
+      const vus = acmgResults.filter((r) => r.tier === "Uncertain significance");
+
+      summaryEl.style.display = "block";
+      summaryEl.innerHTML = `Checked ${checkedCount.toLocaleString()} novel variants -- `
+        + `<strong style="color:${notable.length ? '#F28B82' : '#6FD18E'};">${notable.length} flagged Pathogenic/Likely pathogenic</strong>, `
+        + `${vus.length} Uncertain significance, ${acmgResults.length - notable.length - vus.length} Likely benign/Benign.`;
+
+      if (notable.length === 0) {
+        resultsEl.innerHTML = '<p class="status-message">No computational Pathogenic/Likely pathogenic flags among the checked variants.</p>';
+        return;
+      }
+
+      resultsEl.innerHTML = "";
+      notable
+        .sort((a, b) => (a.tier === "Pathogenic" ? -1 : 1) - (b.tier === "Pathogenic" ? -1 : 1))
+        .forEach((r) => {
+          const s = sigStyle(r.tier);
+          const card = document.createElement("div");
+          card.className = "acmg-card";
+          card.style.borderLeftColor = s.color;
+          card.innerHTML = `
+            <div style="min-width:0;">
+              <span class="variant-gene">${r.gene || "--"}</span>
+              <span class="variant-badge" style="background:${s.bg}; color:${s.color};">${s.label}</span>
+              <span class="computational-tag">Computational</span>
+              <div class="variant-detail">chr${r.variant.chrom}:${r.variant.pos} ${r.variant.ref}>${r.variant.alt} ${r.hgvs_c ? "· " + r.hgvs_c : ""}</div>
+            </div>
+            <div class="variant-freq">
+              <div class="freq-label">CADD / AF</div>
+              ${r.cadd != null ? r.cadd : "--"} / ${r.af != null ? r.af.toExponential(1) : "absent"}
+            </div>
+          `;
+          card.addEventListener("click", () => openAcmgDetail(r));
+          resultsEl.appendChild(card);
+        });
+    }
+
+    function openAcmgDetail(r) {
+      const s = sigStyle(r.tier);
+      const panel = document.getElementById("panel");
+      const overlay = document.getElementById("overlay");
+      panel.innerHTML = `
+        <button class="close-btn" onclick="closeDetail()">✕</button>
+        <h2>${r.gene || "Unknown gene"}</h2>
+        <p style="color:#63798A; font-family:'IBM Plex Mono', monospace; font-size:12px;">chr${r.variant.chrom}:g.${r.variant.pos}${r.variant.ref}>${r.variant.alt}</p>
+        <span class="variant-badge" style="background:${s.bg}; color:${s.color}; display:inline-block; margin-top:8px;">${s.label}</span>
+        <span class="computational-tag" style="margin-left:6px;">Computational estimate -- not clinical</span>
+
+        <div class="section-label">Criteria applied</div>
+        ${r.criteria.map((c) => `
+          <div class="criteria-row">
+            <span class="code" style="color:${c.type === 'pathogenic' ? '#F28B82' : '#6FD18E'};">${c.code}</span>
+            <span style="color:#9FB3C2;">(${c.weight})</span>
+            <div style="color:#E8EEF2; margin-top:4px;">${c.desc}</div>
+          </div>
+        `).join("") || '<p style="color:#63798A;">No criteria met -- insufficient data.</p>'}
+
+        <div class="section-label">Raw values used</div>
+        <p>gnomAD allele frequency: <span style="font-family:'IBM Plex Mono', monospace;">${r.af != null ? r.af.toExponential(3) : "not found (treated as absent)"}</span></p>
+        <p>CADD Phred: <span style="font-family:'IBM Plex Mono', monospace;">${r.cadd != null ? r.cadd : "not available"}</span></p>
+
+        <div class="section-label">Links</div>
+        <p><a href="https://myvariant.info/v1/variant/chr${r.variant.chrom}:g.${r.variant.pos}${r.variant.ref}>${r.variant.alt}?assembly=hg38" target="_blank" rel="noopener">View raw myvariant.info record →</a></p>
+
+        <div class="section-label">Related case reports</div>
+        <button class="case-search-btn" id="caseReportBtn">Search PubMed</button>
+        <div id="caseReportResults"></div>
+      `;
+      panel.style.display = "block";
+      overlay.style.display = "block";
+      document.getElementById("caseReportBtn").addEventListener("click", (e) =>
+        runCaseSearch(r.gene, null, e.target, document.getElementById("caseReportResults"))
+      );
     }
 
     // ---------- Rendering ----------
@@ -634,13 +971,75 @@
         <div class="section-label">Links</div>
         ${v.rsid ? `<p><a href="https://www.ncbi.nlm.nih.gov/clinvar/?term=${v.rsid}" target="_blank" rel="noopener">View on ClinVar →</a></p>` : ""}
         ${v.gene ? `<p><a href="https://gnomad.broadinstitute.org/gene/${v.gene}" target="_blank" rel="noopener">View gene on gnomAD →</a></p>` : ""}
+
+        <div class="section-label">Related case reports</div>
+        <button class="case-search-btn" id="caseReportBtn">Search PubMed</button>
+        <div id="caseReportResults"></div>
       `;
       panel.style.display = "block";
       overlay.style.display = "block";
+      document.getElementById("caseReportBtn").addEventListener("click", (e) =>
+        runCaseSearch(v.gene, firstCondition(v.clinvar_conditions), e.target, document.getElementById("caseReportResults"))
+      );
     }
     function closeDetail() {
       document.getElementById("panel").style.display = "none";
       document.getElementById("overlay").style.display = "none";
+    }
+
+    function firstCondition(conditionsStr) {
+      if (!conditionsStr) return null;
+      const first = conditionsStr.split(";")[0].trim();
+      const bad = ["not provided", "not specified", "see cases", ""];
+      return bad.includes(first.toLowerCase()) ? null : first;
+    }
+
+    async function runCaseSearch(gene, condition, btnEl, resultsEl) {
+      btnEl.disabled = true;
+      btnEl.textContent = "Searching PubMed…";
+      resultsEl.innerHTML = "";
+
+      try {
+        const termParts = [];
+        if (gene) termParts.push(`${gene}[gene]`);
+        if (condition) termParts.push(`(${condition})`);
+        termParts.push('"case reports"[pt]');
+        const term = termParts.join(" AND ");
+
+        const esearchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmode=json&retmax=8&sort=relevance&tool=locus-variant-app&term=${encodeURIComponent(term)}`;
+        const esearchRes = await fetch(esearchUrl);
+        if (!esearchRes.ok) throw new Error("PubMed search unavailable right now");
+        const esearchData = await esearchRes.json();
+        const ids = (esearchData.esearchresult && esearchData.esearchresult.idlist) || [];
+
+        if (ids.length === 0) {
+          resultsEl.innerHTML = '<p style="color:#63798A; font-size:12px; margin-top:8px;">No case reports found on PubMed for this gene/condition.</p>';
+          btnEl.textContent = "Search PubMed";
+          btnEl.disabled = false;
+          return;
+        }
+
+        const esummaryUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&retmode=json&tool=locus-variant-app&id=${ids.join(",")}`;
+        const esummaryRes = await fetch(esummaryUrl);
+        const esummaryData = await esummaryRes.json();
+        const papers = ids.map((id) => esummaryData.result && esummaryData.result[id]).filter(Boolean);
+
+        resultsEl.innerHTML = papers.map((p) => {
+          const authors = p.authors && p.authors.length ? (p.authors[0].name + (p.authors.length > 1 ? " et al." : "")) : "";
+          const year = (p.pubdate || "").split(" ")[0];
+          return `
+            <a class="case-report-card" href="https://pubmed.ncbi.nlm.nih.gov/${p.uid}/" target="_blank" rel="noopener">
+              <div class="case-report-title">${p.title}</div>
+              <div class="case-report-meta">${authors} ${year ? "· " + year : ""} ${p.fulljournalname ? "· " + p.fulljournalname : ""}</div>
+            </a>
+          `;
+        }).join("");
+        btnEl.style.display = "none";
+      } catch (err) {
+        resultsEl.innerHTML = `<p style="color:#F28B82; font-size:12px; margin-top:8px;">${err.message}</p>`;
+        btnEl.textContent = "Search PubMed";
+        btnEl.disabled = false;
+      }
     }
     document.getElementById("overlay").addEventListener("click", closeDetail);
 
