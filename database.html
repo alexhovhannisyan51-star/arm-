@@ -247,6 +247,28 @@
     }
     #panel p { font-size: 14px; margin: 2px 0; }
     #panel a { color: #6FD1C6; }
+    .case-search-btn {
+      margin-top: 8px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid #1E3A52;
+      background: transparent;
+      color: #6FD1C6;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .case-search-btn:disabled { opacity: 0.5; cursor: default; }
+    .case-report-card {
+      display: block;
+      background: #0B1D30;
+      border: 1px solid #1E3A52;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-top: 8px;
+      text-decoration: none;
+    }
+    .case-report-title { color: #E8EEF2; font-size: 13px; line-height: 1.4; margin-bottom: 4px; }
+    .case-report-meta { color: #63798A; font-size: 11px; font-family: 'IBM Plex Mono', monospace; }
   </style>
 </head>
 <body>
@@ -460,9 +482,71 @@
         <div class="section-label">Links</div>
         ${v.rsid ? `<p><a href="https://www.ncbi.nlm.nih.gov/clinvar/?term=${v.rsid}" target="_blank" rel="noopener">View on ClinVar →</a></p>` : ""}
         ${v.gene ? `<p><a href="https://gnomad.broadinstitute.org/gene/${v.gene}" target="_blank" rel="noopener">View gene on gnomAD →</a></p>` : ""}
+
+        <div class="section-label">Related case reports</div>
+        <button class="case-search-btn" id="caseReportBtn">Search PubMed</button>
+        <div id="caseReportResults"></div>
       `;
       panel.style.display = "block";
       overlay.style.display = "block";
+      document.getElementById("caseReportBtn").addEventListener("click", (e) => runCaseSearch(v, e.target));
+    }
+
+    function firstCondition(conditionsStr) {
+      if (!conditionsStr) return null;
+      const first = conditionsStr.split(";")[0].trim();
+      const bad = ["not provided", "not specified", "see cases", ""];
+      return bad.includes(first.toLowerCase()) ? null : first;
+    }
+
+    async function runCaseSearch(v, btnEl) {
+      const resultsEl = document.getElementById("caseReportResults");
+      btnEl.disabled = true;
+      btnEl.textContent = "Searching PubMed…";
+      resultsEl.innerHTML = "";
+
+      try {
+        const condition = firstCondition(v.clinvar_conditions);
+        const termParts = [];
+        if (v.gene) termParts.push(`${v.gene}[gene]`);
+        if (condition) termParts.push(`(${condition})`);
+        termParts.push('"case reports"[pt]');
+        const term = termParts.join(" AND ");
+
+        const esearchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmode=json&retmax=8&sort=relevance&tool=locus-variant-app&term=${encodeURIComponent(term)}`;
+        const esearchRes = await fetch(esearchUrl);
+        if (!esearchRes.ok) throw new Error("PubMed search unavailable right now");
+        const esearchData = await esearchRes.json();
+        const ids = (esearchData.esearchresult && esearchData.esearchresult.idlist) || [];
+
+        if (ids.length === 0) {
+          resultsEl.innerHTML = '<p style="color:#63798A; font-size:12px; margin-top:8px;">No case reports found on PubMed for this gene/condition.</p>';
+          btnEl.textContent = "Search PubMed";
+          btnEl.disabled = false;
+          return;
+        }
+
+        const esummaryUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&retmode=json&tool=locus-variant-app&id=${ids.join(",")}`;
+        const esummaryRes = await fetch(esummaryUrl);
+        const esummaryData = await esummaryRes.json();
+        const papers = ids.map((id) => esummaryData.result && esummaryData.result[id]).filter(Boolean);
+
+        resultsEl.innerHTML = papers.map((p) => {
+          const authors = p.authors && p.authors.length ? (p.authors[0].name + (p.authors.length > 1 ? " et al." : "")) : "";
+          const year = (p.pubdate || "").split(" ")[0];
+          return `
+            <a class="case-report-card" href="https://pubmed.ncbi.nlm.nih.gov/${p.uid}/" target="_blank" rel="noopener">
+              <div class="case-report-title">${p.title}</div>
+              <div class="case-report-meta">${authors} ${year ? "· " + year : ""} ${p.fulljournalname ? "· " + p.fulljournalname : ""}</div>
+            </a>
+          `;
+        }).join("");
+        btnEl.style.display = "none";
+      } catch (err) {
+        resultsEl.innerHTML = `<p style="color:#F28B82; font-size:12px; margin-top:8px;">${err.message}</p>`;
+        btnEl.textContent = "Search PubMed";
+        btnEl.disabled = false;
+      }
     }
 
     function closeDetail() {
