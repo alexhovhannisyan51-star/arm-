@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VCF Scan -- Locus</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #0B1D30;
+      color: #E8EEF2;
+      font-family: 'IBM Plex Sans', sans-serif;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    body.loaded { opacity: 1; }
+    body.fading-out { opacity: 0; }
+
+    header { border-bottom: 1px solid #1E3A52; padding: 16px 24px; }
+    .header-inner { max-width: 1000px; margin: 0 auto; display: flex; align-items: center; gap: 8px; }
+    .logo { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 19px; }
+
+    main { max-width: 1000px; margin: 0 auto; padding: 40px 24px 64px; }
+    h1 { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 28px; margin: 0 0 8px; }
+    .subhead { color: #9FB3C2; font-size: 15px; margin: 0 0 20px; max-width: 640px; line-height: 1.6; }
+
+    .disclaimer {
+      background: rgba(240,210,100,0.08);
+      border: 1px solid rgba(240,210,100,0.35);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #F0D264;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .disclaimer strong { color: #F5DF9A; }
+
+    .dropzone {
+      border: 2px dashed #1E3A52;
+      border-radius: 12px;
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease;
+      margin-bottom: 20px;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: #0C7C7C;
+      background: rgba(12,124,124,0.06);
+    }
+    .dropzone-icon { font-size: 28px; margin-bottom: 10px; }
+    .dropzone-text { color: #E8EEF2; font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .dropzone-sub { color: #63798A; font-size: 13px; }
+    #fileInput { display: none; }
+
+    .file-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #0F2438;
+      border: 1px solid #1E3A52;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      color: #9FB3C2;
+      margin-bottom: 20px;
+    }
+    .file-chip button {
+      background: transparent;
+      border: none;
+      color: #63798A;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .progress-wrap { margin-bottom: 24px; display: none; }
+    .progress-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: #9FB3C2;
+      margin-bottom: 8px;
+    }
+    .progress-track {
+      height: 6px;
+      border-radius: 999px;
+      background: #0F2438;
+      border: 1px solid #1E3A52;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #0C7C7C;
+      transition: width 0.15s ease;
+    }
+
+    .summary-card {
+      background: #0F2438;
+      border: 1px solid #1E3A52;
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .summary-top { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+    .summary-count {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+    }
+    .summary-count.zero { color: #6FD18E; }
+    .summary-count.nonzero { color: #F28B82; }
+    .summary-scanned { font-size: 13px; color: #63798A; }
+    .summary-note { font-size: 12px; color: #63798A; margin-top: 10px; line-height: 1.6; }
+
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .filter-chip {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid #1E3A52;
+      background: transparent;
+      color: #9FB3C2;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .filter-chip.active {
+      border-color: #0C7C7C;
+      background: rgba(12,124,124,0.15);
+      color: #6FD1C6;
+      font-weight: 600;
+    }
+
+    .status-message { color: #63798A; font-size: 14px; padding: 32px 0; text-align: center; line-height: 1.6; }
+
+    .variant-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: #0F2438;
+      border: 1px solid #1E3A52;
+      border-left: 4px solid #64748B;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .variant-card:hover { background: #12293F; }
+    .variant-gene { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 15px; margin-right: 8px; }
+    .variant-badge { font-size: 11px; padding: 3px 10px; border-radius: 999px; font-weight: 600; margin-right: 6px; }
+    .zygosity-badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      background: rgba(159,179,194,0.15);
+      color: #9FB3C2;
+    }
+    .variant-detail { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9FB3C2; margin-top: 4px; }
+    .variant-freq { text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #9FB3C2; white-space: nowrap; }
+    .freq-label { font-size: 11px; color: #63798A; }
+
+    #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 50; }
+    #panel {
+      display: none;
+      position: fixed;
+      top: 0; right: 0;
+      width: 100%;
+      max-width: 420px;
+      height: 100%;
+      background: #0F2438;
+      border-left: 1px solid #1E3A52;
+      padding: 24px;
+      overflow-y: auto;
+      z-index: 51;
+    }
+    #panel h2 { font-family: 'Space Grotesk', sans-serif; font-size: 20px; margin: 0 0 4px; }
+    #panel .close-btn {
+      position: absolute; top: 20px; right: 20px;
+      background: transparent; border: none; color: #63798A;
+      font-size: 16px; cursor: pointer;
+    }
+    #panel .section-label {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+      color: #63798A; margin: 18px 0 6px;
+    }
+    #panel a { color: #6FD1C6; }
+    #panel p { font-size: 13px; margin: 2px 0; color: #E8EEF2; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <img src="logo.png" alt="Locus logo" style="height: 32px; width: auto;" />
+      <span class="logo">Locus</span>
+      <nav style="margin-left: auto; display: flex; align-items: center; gap: 20px;">
+        <a href="index.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Home</a>
+        <a href="database.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Database</a>
+        <a href="advanced-search.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Advanced Search</a>
+        <a href="symptom-search.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Symptom Search</a>
+        <a href="vcf-scan.html" style="color: #6FD1C6; text-decoration: none; font-size: 14px; font-weight: 600;">VCF Scan</a>
+        <a href="contact.html" style="color: #9FB3C2; text-decoration: none; font-size: 14px;">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>VCF Risk Scan</h1>
+    <p class="subhead">
+      Upload a sequenced VCF file. We check every variant in it against our ClinVar-backed database
+      and surface only the ones flagged Pathogenic or Likely pathogenic -- the tier Franklin treats as
+      clinically significant.
+    </p>
+
+    <div class="disclaimer">
+      <strong>Read this first:</strong> this checks your file against a sample of ~15,000-20,000 ClinVar
+      variants, not the full ClinVar database. A "no matches" result means nothing dangerous was found
+      <em>in that sample</em> -- it is not a clean bill of health. This tool assumes a GRCh38-aligned VCF
+      and is for exploration/demo purposes only, not a diagnosis. Your file is parsed entirely in your
+      browser and never uploaded anywhere.
+    </div>
+
+    <div id="dropzone" class="dropzone">
+      <div class="dropzone-icon">🧬</div>
+      <div class="dropzone-text">Drop a .vcf file here, or tap to choose one</div>
+      <div class="dropzone-sub">Plain-text VCF only (not .vcf.gz) &middot; GRCh38 recommended</div>
+      <input type="file" id="fileInput" accept=".vcf,.txt" />
+    </div>
+
+    <div id="fileChip" class="file-chip" style="display:none;">
+      <span id="fileChipName"></span>
+      <button id="fileChipClear">✕ clear</button>
+    </div>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-label" id="progressLabel">Parsing file…</div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="summary-card" id="summaryCard">
+      <div class="summary-top">
+        <div>
+          <div class="summary-count" id="summaryCount">--</div>
+          <div class="summary-scanned" id="summaryScanned"></div>
+        </div>
+      </div>
+      <div class="summary-note">
+        Matches are based on exact GRCh38 chromosome/position/ref/alt, with an rsID cross-check as a
+        second pass. Multi-allelic sites are split per alt allele. Indel representation differences
+        between callers can occasionally cause a real match to be missed.
+      </div>
+    </div>
+
+    <div class="filters" id="filtersRow" style="display:none;">
+      <button class="filter-chip active" data-tier="danger">Pathogenic + Likely pathogenic</button>
+      <button class="filter-chip" data-tier="vus">Also include Uncertain significance</button>
+    </div>
+
+    <div id="results"></div>
+  </main>
+
+  <div id="overlay"></div>
+  <div id="panel"></div>
+
+  <script>
+    const SUPABASE_URL = "https://bgbcudbidruynnzlxurh.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnYmN1ZGJpZHJ1eW5uemx4dXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2Nzk5NDYsImV4cCI6MjEwMDI1NTk0Nn0.pK7K0XZIZoXGv_s7_yq5tToZl0tY61rpkidVyRHP1Tw";
+
+    const MAX_FILE_BYTES = 180 * 1024 * 1024; // ~180MB guard, browser text parsing gets slow beyond this
+    const POS_BATCH_SIZE = 300;
+    const YIELD_EVERY_LINES = 8000;
+
+    const SIG_STYLES = {
+      "Pathogenic": { color: "#F28B82", bg: "rgba(242,139,130,0.15)", label: "Pathogenic" },
+      "Likely pathogenic": { color: "#F5B971", bg: "rgba(245,185,113,0.15)", label: "Likely pathogenic" },
+      "Uncertain significance": { color: "#F0D264", bg: "rgba(240,210,100,0.15)", label: "VUS" },
+    };
+    function sigStyle(sig) {
+      return SIG_STYLES[sig] || { color: "#94A3B8", bg: "rgba(148,163,184,0.15)", label: sig || "Not classified" };
+    }
+
+    let matchedRecords = []; // full candidate set (danger + VUS), for client-side tier toggling
+    let currentTier = "danger";
+    let totalParsed = 0;
+
+    // ---------- File handling ----------
+    const dropzone = document.getElementById("dropzone");
+    const fileInput = document.getElementById("fileInput");
+    const fileChip = document.getElementById("fileChip");
+    const fileChipName = document.getElementById("fileChipName");
+    const fileChipClear = document.getElementById("fileChipClear");
+
+    dropzone.addEventListener("click", () => fileInput.click());
+    dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("dragover"); });
+    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropzone.classList.remove("dragover");
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener("change", (e) => {
+      if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
+    });
+    fileChipClear.addEventListener("click", (e) => {
+      e.stopPropagation();
+      resetAll();
+    });
+
+    function resetAll() {
+      fileInput.value = "";
+      fileChip.style.display = "none";
+      document.getElementById("progressWrap").style.display = "none";
+      document.getElementById("summaryCard").style.display = "none";
+      document.getElementById("filtersRow").style.display = "none";
+      document.getElementById("results").innerHTML = "";
+      matchedRecords = [];
+    }
+
+    async function handleFile(file) {
+      resetAll();
+      if (file.size > MAX_FILE_BYTES) {
+        document.getElementById("results").innerHTML =
+          `<p class="status-message" style="color:#F28B82;">That file is ${(file.size / 1e6).toFixed(0)}MB -- larger than this browser-based scanner can handle smoothly (~180MB limit). Try an exome VCF rather than a full genome, or split the file.</p>`;
+        return;
+      }
+      fileChip.style.display = "inline-flex";
+      fileChipName.textContent = `${file.name} (${(file.size / 1e6).toFixed(1)}MB)`;
+
+      const progressWrap = document.getElementById("progressWrap");
+      const progressLabel = document.getElementById("progressLabel");
+      const progressFill = document.getElementById("progressFill");
+      progressWrap.style.display = "block";
+      progressLabel.textContent = "Reading file…";
+      progressFill.style.width = "5%";
+
+      let text;
+      try {
+        text = await file.text();
+      } catch (err) {
+        document.getElementById("results").innerHTML = `<p class="status-message" style="color:#F28B82;">Couldn't read that file: ${err.message}</p>`;
+        return;
+      }
+
+      progressLabel.textContent = "Parsing variants…";
+      progressFill.style.width = "15%";
+
+      const lines = text.split(/\r?\n/);
+      text = null; // let it GC
+
+      const byChrom = {}; // chrom -> Map(pos -> [{ref,alt,rsid,zyg}])
+      let byRsid = {};      // rsid -> [{chrom,pos,ref,alt,zyg}]
+      let dataLineCount = 0;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line || line[0] === "#") continue;
+        const cols = line.split("\t");
+        if (cols.length < 5) continue;
+
+        const rawChrom = cols[0].trim();
+        const pos = parseInt(cols[1], 10);
+        const id = cols[2] ? cols[2].trim() : "";
+        const ref = cols[3] ? cols[3].trim().toUpperCase() : "";
+        const altField = cols[4] ? cols[4].trim() : "";
+        if (!rawChrom || !pos || !ref || !altField || altField === ".") continue;
+
+        const chrom = normalizeChrom(rawChrom);
+        const alts = altField.split(",").map((a) => a.trim().toUpperCase()).filter((a) => a && a !== "*");
+        if (alts.length === 0) continue;
+
+        // best-effort zygosity from FORMAT + first sample column
+        let zyg = null;
+        if (cols.length >= 10 && cols[8]) {
+          const fmtParts = cols[8].split(":");
+          const gtIdx = fmtParts.indexOf("GT");
+          if (gtIdx !== -1 && cols[9]) {
+            const sampleParts = cols[9].split(":");
+            const gtRaw = sampleParts[gtIdx];
+            if (gtRaw) zyg = classifyZygosity(gtRaw);
+          }
+        }
+
+        const rsid = id.startsWith("rs") ? id : null;
+
+        alts.forEach((alt) => {
+          dataLineCount++;
+          if (!byChrom[chrom]) byChrom[chrom] = new Map();
+          if (!byChrom[chrom].has(pos)) byChrom[chrom].set(pos, []);
+          byChrom[chrom].get(pos).push({ ref, alt, zyg });
+
+          if (rsid) {
+            if (!byRsid[rsid]) byRsid[rsid] = [];
+            byRsid[rsid].push({ chrom, pos, ref, alt, zyg });
+          }
+        });
+
+        if (i % YIELD_EVERY_LINES === 0) {
+          progressFill.style.width = (15 + (i / lines.length) * 35) + "%";
+          progressLabel.textContent = `Parsing variants… ${dataLineCount.toLocaleString()} so far`;
+          await nextTick();
+        }
+      }
+
+      totalParsed = dataLineCount;
+
+      if (dataLineCount === 0) {
+        progressWrap.style.display = "none";
+        document.getElementById("results").innerHTML =
+          '<p class="status-message" style="color:#F28B82;">No variant rows found. Make sure this is a plain-text VCF with tab-separated CHROM/POS/ID/REF/ALT columns.</p>';
+        return;
+      }
+
+      progressLabel.textContent = `Matching ${dataLineCount.toLocaleString()} variants against the database…`;
+      progressFill.style.width = "55%";
+      await nextTick();
+
+      const found = await matchAgainstDatabase(byChrom, byRsid, (pct) => {
+        progressFill.style.width = (55 + pct * 40) + "%";
+      });
+
+      progressFill.style.width = "100%";
+      progressLabel.textContent = "Done";
+      setTimeout(() => { progressWrap.style.display = "none"; }, 400);
+
+      matchedRecords = found;
+      renderSummaryAndResults();
+    }
+
+    function normalizeChrom(raw) {
+      let c = raw.replace(/^chr/i, "");
+      if (c.toUpperCase() === "M") c = "MT";
+      return c.toUpperCase() === "MT" ? "MT" : c;
+    }
+
+    function classifyZygosity(gtRaw) {
+      const alleles = gtRaw.split(/[\/|]/);
+      if (alleles.length < 2) return null;
+      if (alleles.every((a) => a !== "0" && a !== "." && a === alleles[0])) return "Homozygous";
+      if (alleles.some((a) => a === "0") && alleles.some((a) => a !== "0" && a !== ".")) return "Heterozygous";
+      if (alleles.every((a) => a === "0")) return "Reference";
+      return null;
+    }
+
+    function nextTick() {
+      return new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    function chunk(arr, size) {
+      const out = [];
+      for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+      return out;
+    }
+
+    async function fetchVariants(params) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/variants?${params.toString()}&apikey=${SUPABASE_ANON_KEY}`);
+      if (!res.ok) throw new Error(`Database error ${res.status}`);
+      return res.json();
+    }
+
+    async function matchAgainstDatabase(byChrom, byRsid, onProgress) {
+      const matchesByKey = new Map(); // variant_id -> record (with matched zyg attached)
+      const chroms = Object.keys(byChrom);
+      let done = 0;
+
+      for (const chrom of chroms) {
+        const posMap = byChrom[chrom];
+        const positions = Array.from(posMap.keys());
+        const batches = chunk(positions, POS_BATCH_SIZE);
+
+        for (const batch of batches) {
+          try {
+            const params = new URLSearchParams();
+            params.set("select", "*");
+            params.set("chrom", `eq.${chrom}`);
+            params.set("pos", `in.(${batch.join(",")})`);
+            params.set("clinvar_significance", "in.(Pathogenic,Likely pathogenic,Uncertain significance)");
+            params.set("limit", "2000");
+            const rows = await fetchVariants(params);
+
+            rows.forEach((row) => {
+              const candidates = posMap.get(row.pos);
+              if (!candidates) return;
+              const hit = candidates.find(
+                (c) => c.ref === (row.ref || "").toUpperCase() && c.alt === (row.alt || "").toUpperCase()
+              );
+              if (hit && !matchesByKey.has(row.variant_id)) {
+                matchesByKey.set(row.variant_id, { ...row, zygosity: hit.zyg });
+              }
+            });
+          } catch (e) {
+            // one batch failing shouldn't kill the whole scan; skip and continue
+          }
+        }
+        done++;
+        onProgress(chroms.length ? done / chroms.length * 0.7 : 0.7);
+        await nextTick();
+      }
+
+      // second pass: rsID cross-check to catch coordinate/indel mismatches
+      const rsids = Object.keys(byRsid);
+      const rsidBatches = chunk(rsids, POS_BATCH_SIZE);
+      let rdone = 0;
+      for (const batch of rsidBatches) {
+        try {
+          const params = new URLSearchParams();
+          params.set("select", "*");
+          params.set("rsid", `in.(${batch.join(",")})`);
+          params.set("clinvar_significance", "in.(Pathogenic,Likely pathogenic,Uncertain significance)");
+          params.set("limit", "2000");
+          const rows = await fetchVariants(params);
+          rows.forEach((row) => {
+            if (matchesByKey.has(row.variant_id)) return;
+            const hits = byRsid[row.rsid];
+            if (hits && hits.length) {
+              matchesByKey.set(row.variant_id, { ...row, zygosity: hits[0].zyg });
+            }
+          });
+        } catch (e) { /* skip failed batch */ }
+        rdone++;
+        onProgress(0.7 + (rsidBatches.length ? rdone / rsidBatches.length * 0.3 : 0.3));
+        await nextTick();
+      }
+
+      return Array.from(matchesByKey.values());
+    }
+
+    // ---------- Rendering ----------
+    function renderSummaryAndResults() {
+      const summaryCard = document.getElementById("summaryCard");
+      const summaryCount = document.getElementById("summaryCount");
+      const summaryScanned = document.getElementById("summaryScanned");
+      const filtersRow = document.getElementById("filtersRow");
+
+      const dangerCount = matchedRecords.filter((r) =>
+        r.clinvar_significance === "Pathogenic" || r.clinvar_significance === "Likely pathogenic"
+      ).length;
+
+      summaryCard.style.display = "block";
+      summaryCount.textContent = `${dangerCount} pathogenic/likely pathogenic match${dangerCount !== 1 ? "es" : ""}`;
+      summaryCount.className = "summary-count " + (dangerCount === 0 ? "zero" : "nonzero");
+      summaryScanned.textContent = `${totalParsed.toLocaleString()} variants scanned from your file`;
+
+      filtersRow.style.display = "flex";
+      document.querySelectorAll(".filter-chip").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.tier === currentTier);
+      });
+
+      renderResults();
+    }
+
+    function renderResults() {
+      const resultsEl = document.getElementById("results");
+      const tiers = currentTier === "danger"
+        ? ["Pathogenic", "Likely pathogenic"]
+        : ["Pathogenic", "Likely pathogenic", "Uncertain significance"];
+
+      const filtered = matchedRecords
+        .filter((r) => tiers.includes(r.clinvar_significance))
+        .sort((a, b) => tiers.indexOf(a.clinvar_significance) - tiers.indexOf(b.clinvar_significance));
+
+      if (filtered.length === 0) {
+        resultsEl.innerHTML = '<p class="status-message">No matches at this tier. Remember: this only reflects our sample database, not the full ClinVar catalog.</p>';
+        return;
+      }
+
+      resultsEl.innerHTML = "";
+      filtered.forEach((v) => {
+        const s = sigStyle(v.clinvar_significance);
+        const card = document.createElement("div");
+        card.className = "variant-card";
+        card.style.borderLeftColor = s.color;
+        card.innerHTML = `
+          <div style="min-width:0;">
+            <span class="variant-gene">${v.gene || "--"}</span>
+            <span class="variant-badge" style="background:${s.bg}; color:${s.color};">${s.label}</span>
+            ${v.zygosity ? `<span class="zygosity-badge">${v.zygosity}</span>` : ""}
+            <div class="variant-detail">${v.hgvs_c || v.variant_id || ""} ${v.hgvs_p ? "· " + v.hgvs_p : ""} ${v.rsid ? "· " + v.rsid : ""}</div>
+          </div>
+          <div class="variant-freq">
+            <div class="freq-label">gnomAD AF</div>
+            ${v.gnomad_af_exome ? Number(v.gnomad_af_exome).toExponential(2) : "--"}
+          </div>
+        `;
+        card.addEventListener("click", () => openDetail(v));
+        resultsEl.appendChild(card);
+      });
+    }
+
+    document.querySelectorAll(".filter-chip").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        currentTier = btn.dataset.tier;
+        document.querySelectorAll(".filter-chip").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        renderResults();
+      });
+    });
+
+    function openDetail(v) {
+      const s = sigStyle(v.clinvar_significance);
+      const panel = document.getElementById("panel");
+      const overlay = document.getElementById("overlay");
+      panel.innerHTML = `
+        <button class="close-btn" onclick="closeDetail()">✕</button>
+        <h2>${v.gene || "Unknown gene"}</h2>
+        <p style="color:#63798A; font-family:'IBM Plex Mono', monospace; font-size:12px; word-break:break-all;">${v.variant_id || ""}</p>
+        <span class="variant-badge" style="background:${s.bg}; color:${s.color}; display:inline-block; margin-top:8px;">${s.label}</span>
+        ${v.zygosity ? `<span class="zygosity-badge" style="margin-left:6px;">${v.zygosity} in your file</span>` : ""}
+        <p style="color:#9FB3C2; font-size:13px; margin-top:6px;">${v.clinvar_review_status || "No review status"}</p>
+
+        <div class="section-label">Nomenclature</div>
+        <p style="font-family:'IBM Plex Mono', monospace;">${v.hgvs_c || "--"}</p>
+        <p style="font-family:'IBM Plex Mono', monospace;">${v.hgvs_p || "--"}</p>
+        <p style="font-family:'IBM Plex Mono', monospace;">${v.rsid || "--"}</p>
+        <p style="font-family:'IBM Plex Mono', monospace;">${v.chrom ? "chr" + v.chrom + ":" + v.pos + " " + v.ref + ">" + v.alt : "--"}</p>
+
+        <div class="section-label">Population frequency</div>
+        <p>gnomAD exome: <span style="font-family:'IBM Plex Mono', monospace;">${v.gnomad_af_exome ? Number(v.gnomad_af_exome).toExponential(3) : "--"}</span></p>
+        <p>gnomAD genome: <span style="font-family:'IBM Plex Mono', monospace;">${v.gnomad_af_genome ? Number(v.gnomad_af_genome).toExponential(3) : "--"}</span></p>
+
+        ${v.cadd_phred != null ? `<div class="section-label">CADD score</div><p style="font-family:'IBM Plex Mono', monospace;">${v.cadd_phred}</p>` : ""}
+        ${v.clinvar_conditions ? `<div class="section-label">Associated conditions</div><p>${v.clinvar_conditions}</p>` : ""}
+
+        <div class="section-label">Links</div>
+        ${v.rsid ? `<p><a href="https://www.ncbi.nlm.nih.gov/clinvar/?term=${v.rsid}" target="_blank" rel="noopener">View on ClinVar →</a></p>` : ""}
+        ${v.gene ? `<p><a href="https://gnomad.broadinstitute.org/gene/${v.gene}" target="_blank" rel="noopener">View gene on gnomAD →</a></p>` : ""}
+      `;
+      panel.style.display = "block";
+      overlay.style.display = "block";
+    }
+    function closeDetail() {
+      document.getElementById("panel").style.display = "none";
+      document.getElementById("overlay").style.display = "none";
+    }
+    document.getElementById("overlay").addEventListener("click", closeDetail);
+
+    // ---------- Page transitions (matches rest of site) ----------
+    document.addEventListener("click", (e) => {
+      const link = e.target.closest("a");
+      if (!link) return;
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("tel:") || link.target === "_blank") return;
+      e.preventDefault();
+      document.body.classList.add("fading-out");
+      setTimeout(() => { window.location.href = href; }, 200);
+    });
+
+    if (document.readyState === "loading") {
+      window.addEventListener("DOMContentLoaded", () => { document.body.classList.add("loaded"); });
+    } else {
+      document.body.classList.add("loaded");
+    }
+  </script>
+
+</body>
+</html>
